@@ -23,7 +23,12 @@ import {
   Phone,
   CheckCircle2,
   X,
+  MessageCircle,
+  Send,
 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const services = [
   {
@@ -99,58 +104,114 @@ const services = [
         "Parcelamentos de débitos",
         "Regularização fiscal"
       ],
-      cta: "Nunca mais perca prazos ou pague multas desnecessárias."
+      cta: "Fique tranquilo com todas as obrigações fiscais em dia."
     }
   },
   {
     icon: Building2,
     title: "Abertura de Empresas",
-    description: "Constituição e regularização de empresas de todos os portes e segmentos.",
+    description: "Constituição, alteração e baixa de empresas com agilidade e segurança.",
     details: {
-      intro: "Abra sua empresa de forma rápida, segura e com toda orientação necessária.",
+      intro: "Realize seu sonho de empreender com toda a documentação em ordem.",
       items: [
         "Abertura de MEI, ME, EPP e LTDA",
         "Registro na Junta Comercial",
-        "Inscrição Municipal e Estadual",
-        "Alvará de funcionamento",
+        "Obtenção de CNPJ",
+        "Inscrição estadual e municipal",
+        "Alvarás e licenças",
         "Alterações contratuais",
         "Transformação de tipo societário",
-        "Baixa de empresas",
-        "Regularização de pendências"
+        "Baixa e encerramento de empresas"
       ],
-      cta: "Comece seu negócio com o pé direito e toda documentação em ordem."
+      cta: "Comece seu negócio com o pé direito e toda a documentação correta."
     }
   },
   {
     icon: Briefcase,
-    title: "Apoio Administrativo",
-    description: "Serviços de escritório e preparação de documentos especializados.",
+    title: "Serviços Administrativos",
+    description: "Apoio administrativo completo para otimizar a gestão do seu negócio.",
     details: {
-      intro: "Suporte completo para as demandas administrativas do seu negócio.",
+      intro: "Terceirize tarefas administrativas e foque no que realmente importa: seu negócio.",
       items: [
-        "Emissão de certidões",
-        "Preparação de documentos",
-        "Protocolo em órgãos públicos",
-        "Organização de arquivos",
-        "Digitalização de documentos",
-        "Atendimento a fiscalizações",
-        "Suporte em licitações",
-        "Assessoria documental"
+        "Organização de documentos",
+        "Controle de contas a pagar e receber",
+        "Emissão de notas fiscais",
+        "Gestão de contratos",
+        "Relatórios financeiros",
+        "Conciliação de extratos",
+        "Arquivamento digital",
+        "Suporte administrativo geral"
       ],
-      cta: "Foque no seu negócio enquanto cuidamos da burocracia."
+      cta: "Ganhe tempo e eficiência com nosso suporte administrativo."
     }
   },
 ];
 
 const team = [
-  { name: "Gabriel", department: "Departamento Fiscal", color: "from-amber-500 to-amber-700" },
-  { name: "Samarah", department: "Departamento Fiscal", color: "from-amber-500 to-amber-700" },
-  { name: "Laura", department: "Departamento Contábil", color: "from-emerald-500 to-emerald-700" },
-  { name: "Janderley", department: "Departamento Pessoal", color: "from-blue-500 to-blue-700" },
-  { name: "Emily", department: "Departamento Pessoal", color: "from-blue-500 to-blue-700" },
-  { name: "Júnior", department: "Departamento Pessoal", color: "from-blue-500 to-blue-700" },
-  { name: "José", department: "Departamento Paralegal", color: "from-purple-500 to-purple-700" },
-  { name: "Bruna", department: "Departamento Paralegal", color: "from-purple-500 to-purple-700" },
+  { 
+    id: "gabriel",
+    name: "Gabriel", 
+    department: "Departamento Fiscal", 
+    departmentKey: "fiscal",
+    avatar: "/avatars/gabriel.png",
+    description: "Especialista em questões fiscais e tributárias"
+  },
+  { 
+    id: "samarah",
+    name: "Samarah", 
+    department: "Departamento Fiscal", 
+    departmentKey: "fiscal",
+    avatar: "/avatars/samarah.png",
+    description: "Especialista em ICMS e obrigações acessórias"
+  },
+  { 
+    id: "laura",
+    name: "Laura", 
+    department: "Departamento Contábil", 
+    departmentKey: "contabil",
+    avatar: "/avatars/laura.png",
+    description: "Especialista em contabilidade e balanços"
+  },
+  { 
+    id: "janderley",
+    name: "Janderley", 
+    department: "Departamento Pessoal", 
+    departmentKey: "pessoal",
+    avatar: "/avatars/janderley.png",
+    description: "Especialista em folha de pagamento"
+  },
+  { 
+    id: "emily",
+    name: "Emily", 
+    department: "Departamento Pessoal", 
+    departmentKey: "pessoal",
+    avatar: "/avatars/emily.png",
+    description: "Especialista em admissões e rescisões"
+  },
+  { 
+    id: "junior",
+    name: "Júnior", 
+    department: "Departamento Pessoal", 
+    departmentKey: "pessoal",
+    avatar: "/avatars/junior.png",
+    description: "Especialista em eSocial e obrigações trabalhistas"
+  },
+  { 
+    id: "jose",
+    name: "José", 
+    department: "Departamento Paralegal", 
+    departmentKey: "paralegal",
+    avatar: "/avatars/jose.png",
+    description: "Especialista em abertura e regularização de empresas"
+  },
+  { 
+    id: "bruna",
+    name: "Bruna", 
+    department: "Departamento Paralegal", 
+    departmentKey: "paralegal",
+    avatar: "/avatars/bruna.png",
+    description: "Especialista em documentação e alvarás"
+  },
 ];
 
 const testimonials = [
@@ -183,8 +244,52 @@ const benefits = [
   "Sigilo e segurança dos dados",
 ];
 
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export default function Home() {
   const [selectedService, setSelectedService] = useState<typeof services[0] | null>(null);
+  const [selectedMember, setSelectedMember] = useState<typeof team[0] | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const chatMutation = trpc.chat.send.useMutation();
+
+  const handleMemberClick = (member: typeof team[0]) => {
+    setSelectedMember(member);
+    setChatMessages([{
+      role: "assistant",
+      content: `Olá! Sou ${member.name} do ${member.department}. ${member.description}. Como posso ajudá-lo hoje?`
+    }]);
+  };
+
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || isLoading || !selectedMember) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput("");
+    setChatMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    setIsLoading(true);
+
+    try {
+      const response = await chatMutation.mutateAsync({
+        sessionId: `staff-${selectedMember.id}-${Date.now()}`,
+        message: `[Conversa com ${selectedMember.name} - ${selectedMember.department}] ${userMessage}`,
+      });
+      
+      setChatMessages(prev => [...prev, { role: "assistant", content: response.response }]);
+    } catch (error) {
+      setChatMessages(prev => [...prev, { 
+        role: "assistant", 
+        content: "Desculpe, ocorreu um erro. Por favor, tente novamente ou entre em contato pelo WhatsApp." 
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -248,10 +353,10 @@ export default function Home() {
             <div className="hidden lg:flex justify-center">
               <div className="relative">
                 <div className="absolute -inset-8 bg-gradient-to-r from-primary/30 to-primary/10 rounded-full blur-3xl animate-pulse" />
-                <img
-                  src="/logo-final.png"
-                  alt="Contexto Assessoria Contábil"
-                  className="relative w-[500px] h-auto drop-shadow-[0_0_30px_rgba(201,169,98,0.4)] hover:drop-shadow-[0_0_50px_rgba(201,169,98,0.6)] transition-all duration-500"
+                <img 
+                  src="/logo-hero.png" 
+                  alt="Contexto Assessoria Contábil" 
+                  className="relative w-80 h-80 object-contain drop-shadow-2xl"
                 />
               </div>
             </div>
@@ -259,7 +364,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Services Section with Clickable Cards */}
+      {/* Services Section */}
       <section id="servicos" className="py-24 bg-card">
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -267,7 +372,7 @@ export default function Home() {
               Nossos <span className="text-gold-gradient">Serviços</span>
             </h2>
             <p className="text-muted-foreground text-lg">
-              Clique em qualquer serviço para saber mais detalhes sobre como podemos ajudar sua empresa.
+              Soluções completas em contabilidade para impulsionar o crescimento da sua empresa.
             </p>
           </div>
 
@@ -276,67 +381,57 @@ export default function Home() {
               <div
                 key={index}
                 onClick={() => setSelectedService(service)}
-                className="group p-6 bg-background border border-border rounded-2xl card-hover cursor-pointer transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10"
+                className="group p-6 bg-background border border-border rounded-2xl card-hover cursor-pointer"
               >
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                   <service.icon className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="font-serif text-xl font-semibold mb-2 group-hover:text-primary transition-colors">{service.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                  {service.description}
-                </p>
-                <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                <h3 className="font-semibold text-lg mb-2">{service.title}</h3>
+                <p className="text-muted-foreground text-sm mb-4">{service.description}</p>
+                <span className="text-primary text-sm font-medium inline-flex items-center gap-1 group-hover:gap-2 transition-all">
                   Saiba mais <ArrowRight className="h-4 w-4" />
                 </span>
               </div>
             ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link href="/servicos">
-              <Button size="lg" className="btn-gold gap-2">
-                Ver Todos os Serviços
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
           </div>
         </div>
       </section>
 
       {/* Service Detail Modal */}
       <Dialog open={!!selectedService} onOpenChange={() => setSelectedService(null)}>
-        <DialogContent className="sm:max-w-lg bg-card border-border">
+        <DialogContent className="max-w-2xl bg-card border-border">
           <DialogHeader>
-            <div className="flex items-center gap-4 mb-2">
+            <div className="flex items-center gap-4">
               {selectedService && (
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                   <selectedService.icon className="h-6 w-6 text-primary" />
                 </div>
               )}
-              <DialogTitle className="font-serif text-2xl">{selectedService?.title}</DialogTitle>
+              <div>
+                <DialogTitle className="font-serif text-2xl">{selectedService?.title}</DialogTitle>
+                <DialogDescription>{selectedService?.description}</DialogDescription>
+              </div>
             </div>
-            <DialogDescription className="text-base">
-              {selectedService?.details.intro}
-            </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <h4 className="font-semibold text-foreground">O que oferecemos:</h4>
-            <ul className="space-y-2">
-              {selectedService?.details.items.map((item, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+          <div className="mt-6 space-y-6">
+            <p className="text-muted-foreground">{selectedService?.details.intro}</p>
             
-            <p className="text-sm text-primary font-medium pt-2 border-t border-border">
-              {selectedService?.details.cta}
-            </p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {selectedService?.details.items.map((item, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <span className="text-sm">{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+              <p className="text-sm text-primary">{selectedService?.details.cta}</p>
+            </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 mt-6">
             <a href="https://wa.me/5562990700393" target="_blank" rel="noopener noreferrer" className="flex-1">
               <Button className="btn-gold w-full gap-2">
                 <Phone className="h-4 w-4" />
@@ -393,7 +488,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Team Section */}
+      {/* Team Section with Clickable Avatars */}
       <section id="equipe" className="py-24 bg-card">
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -401,7 +496,7 @@ export default function Home() {
               Nossa <span className="text-gold-gradient">Equipe</span>
             </h2>
             <p className="text-muted-foreground text-lg">
-              Profissionais qualificados e dedicados ao sucesso do seu negócio.
+              Clique em um membro da equipe para iniciar uma conversa direta.
             </p>
           </div>
 
@@ -409,20 +504,109 @@ export default function Home() {
             {team.map((member, index) => (
               <div
                 key={index}
-                className="group text-center p-6 bg-background border border-border rounded-2xl card-hover"
+                onClick={() => handleMemberClick(member)}
+                className="group text-center p-6 bg-background border border-border rounded-2xl card-hover cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10"
               >
-                <div className={`w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center mb-4`}>
-                  <span className="text-2xl font-bold text-white">
-                    {member.name.charAt(0)}
-                  </span>
+                <div className="relative w-24 h-24 mx-auto mb-4">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full animate-pulse group-hover:from-primary/40 group-hover:to-primary/20 transition-all" />
+                  <img 
+                    src={member.avatar} 
+                    alt={member.name}
+                    className="relative w-full h-full object-cover rounded-full border-2 border-primary/30 group-hover:border-primary transition-all group-hover:scale-105"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <MessageCircle className="h-4 w-4 text-primary-foreground" />
+                  </div>
                 </div>
-                <h3 className="font-semibold mb-1">{member.name}</h3>
+                <h3 className="font-semibold mb-1 group-hover:text-primary transition-colors">{member.name}</h3>
                 <p className="text-xs text-muted-foreground">{member.department}</p>
+                <p className="text-xs text-primary mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Clique para conversar
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      {/* Member Chat Modal */}
+      <Dialog open={!!selectedMember} onOpenChange={() => setSelectedMember(null)}>
+        <DialogContent className="max-w-lg bg-card border-border p-0 overflow-hidden">
+          <div className="bg-gradient-to-r from-primary/20 to-primary/5 p-4 border-b border-border">
+            <div className="flex items-center gap-4">
+              {selectedMember && (
+                <>
+                  <img 
+                    src={selectedMember.avatar} 
+                    alt={selectedMember.name}
+                    className="w-14 h-14 rounded-full border-2 border-primary/50 object-cover"
+                  />
+                  <div>
+                    <DialogTitle className="font-serif text-xl">{selectedMember.name}</DialogTitle>
+                    <DialogDescription className="text-primary">{selectedMember.department}</DialogDescription>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          
+          <ScrollArea className="h-80 p-4">
+            <div className="space-y-4">
+              {chatMessages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[80%] p-3 rounded-2xl ${
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-md"
+                        : "bg-muted rounded-bl-md"
+                    }`}
+                  >
+                    <p className="text-sm">{msg.content}</p>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-muted p-3 rounded-2xl rounded-bl-md">
+                    <div className="flex gap-1">
+                      <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          <div className="p-4 border-t border-border">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="flex gap-2"
+            >
+              <Input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Digite sua mensagem..."
+                className="flex-1 bg-background border-border"
+                disabled={isLoading}
+              />
+              <Button type="submit" size="icon" className="btn-gold" disabled={isLoading || !chatInput.trim()}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Todas as conversas são gravadas para melhor atendimento
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Testimonials Section */}
       <section className="py-24 bg-background">
@@ -461,27 +645,31 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A]">
-        <div className="container text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6">
-            Pronto para <span className="text-gold-gradient">simplificar</span> sua contabilidade?
-          </h2>
-          <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-            Entre em contato conosco e descubra como podemos ajudar sua empresa a crescer com segurança e tranquilidade.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="https://wa.me/5562990700393" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="btn-gold gap-2">
-                <Phone className="h-5 w-5" />
-                Falar pelo WhatsApp
-              </Button>
-            </a>
-            <Link href="/contato">
-              <Button size="lg" variant="outline" className="gap-2 border-primary/30 hover:bg-primary/10">
-                Enviar Mensagem
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
+      <section className="py-24 bg-gradient-to-br from-primary/10 via-background to-background">
+        <div className="container">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6">
+              Pronto para simplificar sua{" "}
+              <span className="text-gold-gradient">contabilidade?</span>
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8">
+              Entre em contato conosco e descubra como podemos ajudar sua empresa a crescer 
+              com uma gestão contábil eficiente e personalizada.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="https://wa.me/5562990700393" target="_blank" rel="noopener noreferrer">
+                <Button size="lg" className="btn-gold gap-2 text-base">
+                  <Phone className="h-5 w-5" />
+                  Fale Conosco Agora
+                </Button>
+              </a>
+              <Link href="/contato">
+                <Button size="lg" variant="outline" className="gap-2 text-base border-primary/30 hover:bg-primary/10">
+                  Ver Localização
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

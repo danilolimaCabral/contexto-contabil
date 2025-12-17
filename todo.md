@@ -71,3 +71,10 @@
 - [x] Filtros de período para os relatórios
 - [x] Tabela de desempenho detalhada
 - [x] Arrumar logos com fundo transparente
+
+## Avatares e Chat Direto
+- [x] Gerar avatares personalizados com nano banana para cada membro da equipe
+- [x] Tornar avatares clicáveis para abrir chat direto
+- [x] Sistema de chat por departamento/pessoa
+- [x] Gravar todas as conversas no banco de dados
+- [ ] Status online/offline para membros da equipe
