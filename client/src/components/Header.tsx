@@ -67,7 +67,7 @@ export default function Header() {
             <img
               src="/logo-header.png"
               alt="Contexto Assessoria Contábil"
-              className="h-20 w-auto"
+              className="h-24 w-auto"
             />
           </Link>
 
