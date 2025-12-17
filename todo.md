@@ -95,3 +95,12 @@
 - [x] Visualização de todos os atendimentos da equipe
 - [x] Histórico de funcionários desligados
 - [x] Testes unitários para rotas de admin
+
+## Métricas de Desempenho
+- [x] Seção de métricas no painel admin
+- [x] Indicadores de performance por funcionário
+- [x] Gráficos de atendimentos realizados
+- [x] Taxa de conversão de leads
+- [x] Tempo médio de resposta
+- [x] Desempenho por departamento
+- [x] Metas do mês com progresso
