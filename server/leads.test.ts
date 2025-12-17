@@ -1,0 +1,113 @@
+import { describe, expect, it, vi } from "vitest";
+import { appRouter } from "./routers";
+import type { TrpcContext } from "./_core/context";
+
+// Mock the database functions
+vi.mock("./db", () => ({
+  createLead: vi.fn().mockResolvedValue({
+    id: 1,
+    name: "Test User",
+    email: "test@example.com",
+    phone: "62999999999",
+    company: "Test Company",
+    message: "Test message",
+    source: "contact_form",
+    status: "new",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }),
+  getLeads: vi.fn().mockResolvedValue([]),
+  updateLeadStatus: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock the notification function
+vi.mock("./_core/notification", () => ({
+  notifyOwner: vi.fn().mockResolvedValue(true),
+}));
+
+function createPublicContext(): TrpcContext {
+  return {
+    user: null,
+    req: {
+      protocol: "https",
+      headers: {},
+    } as TrpcContext["req"],
+    res: {
+      clearCookie: vi.fn(),
+    } as unknown as TrpcContext["res"],
+  };
+}
+
+function createAuthContext(): TrpcContext {
+  return {
+    user: {
+      id: 1,
+      openId: "test-user",
+      email: "admin@example.com",
+      name: "Admin User",
+      loginMethod: "manus",
+      role: "admin",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    },
+    req: {
+      protocol: "https",
+      headers: {},
+    } as TrpcContext["req"],
+    res: {
+      clearCookie: vi.fn(),
+    } as unknown as TrpcContext["res"],
+  };
+}
+
+describe("leads.create", () => {
+  it("creates a new lead from contact form", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.leads.create({
+      name: "Test User",
+      email: "test@example.com",
+      phone: "62999999999",
+      company: "Test Company",
+      message: "Test message",
+      source: "contact_form",
+    });
+
+    expect(result).toBeDefined();
+    expect(result?.name).toBe("Test User");
+    expect(result?.email).toBe("test@example.com");
+    expect(result?.source).toBe("contact_form");
+  });
+
+  it("creates a lead with minimal data", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.leads.create({
+      name: "Minimal User",
+    });
+
+    expect(result).toBeDefined();
+    expect(result?.name).toBe("Test User"); // From mock
+  });
+});
+
+describe("leads.list", () => {
+  it("requires authentication to list leads", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(caller.leads.list()).rejects.toThrow();
+  });
+
+  it("returns leads for authenticated users", async () => {
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.leads.list();
+
+    expect(Array.isArray(result)).toBe(true);
+  });
+});

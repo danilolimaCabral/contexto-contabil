@@ -1,11 +1,10 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, leads, InsertLead, Lead, appointments, InsertAppointment, Appointment, chatMessages, InsertChatMessage, ChatMessage, testimonials, Testimonial } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -17,6 +16,8 @@ export async function getDb() {
   }
   return _db;
 }
+
+// ==================== USER FUNCTIONS ====================
 
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
@@ -85,8 +86,105 @@ export async function getUserByOpenId(openId: string) {
   }
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ==================== LEAD FUNCTIONS ====================
+
+export async function createLead(lead: InsertLead): Promise<Lead | null> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create lead: database not available");
+    return null;
+  }
+
+  try {
+    const result = await db.insert(leads).values(lead);
+    const insertId = result[0].insertId;
+    const newLead = await db.select().from(leads).where(eq(leads.id, insertId)).limit(1);
+    return newLead[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to create lead:", error);
+    throw error;
+  }
+}
+
+export async function getLeads(): Promise<Lead[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(leads).orderBy(desc(leads.createdAt));
+}
+
+export async function updateLeadStatus(id: number, status: Lead["status"]): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(leads).set({ status }).where(eq(leads.id, id));
+}
+
+// ==================== APPOINTMENT FUNCTIONS ====================
+
+export async function createAppointment(appointment: InsertAppointment): Promise<Appointment | null> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create appointment: database not available");
+    return null;
+  }
+
+  try {
+    const result = await db.insert(appointments).values(appointment);
+    const insertId = result[0].insertId;
+    const newAppointment = await db.select().from(appointments).where(eq(appointments.id, insertId)).limit(1);
+    return newAppointment[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to create appointment:", error);
+    throw error;
+  }
+}
+
+export async function getAppointments(): Promise<Appointment[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(appointments).orderBy(desc(appointments.scheduledDate));
+}
+
+export async function updateAppointmentStatus(id: number, status: Appointment["status"]): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(appointments).set({ status }).where(eq(appointments.id, id));
+}
+
+// ==================== CHAT MESSAGE FUNCTIONS ====================
+
+export async function saveChatMessage(message: InsertChatMessage): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.insert(chatMessages).values(message);
+}
+
+export async function getChatHistory(sessionId: string): Promise<ChatMessage[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(chatMessages).where(eq(chatMessages.sessionId, sessionId)).orderBy(chatMessages.createdAt);
+}
+
+// ==================== TESTIMONIAL FUNCTIONS ====================
+
+export async function getActiveTestimonials(): Promise<Testimonial[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(testimonials).where(eq(testimonials.isActive, true)).orderBy(desc(testimonials.createdAt));
+}
+
+export async function createTestimonial(testimonial: Omit<Testimonial, "id" | "createdAt">): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.insert(testimonials).values(testimonial);
+}
