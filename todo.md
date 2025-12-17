@@ -78,3 +78,5 @@
 - [x] Sistema de chat por departamento/pessoa
 - [x] Gravar todas as conversas no banco de dados
 - [ ] Status online/offline para membros da equipe
+- [x] Remover fundo escuro da logo hero e deixar transparente
+- [x] Subir posição da logo no hero

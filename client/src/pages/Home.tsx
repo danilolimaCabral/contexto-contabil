@@ -351,12 +351,12 @@ export default function Home() {
             </div>
 
             <div className="hidden lg:flex justify-center">
-              <div className="relative">
-                <div className="absolute -inset-8 bg-gradient-to-r from-primary/30 to-primary/10 rounded-full blur-3xl animate-pulse" />
+              <div className="relative -mt-32">
+                <div className="absolute -inset-4 bg-gradient-to-r from-primary/40 to-primary/20 rounded-full blur-2xl animate-pulse" />
                 <img 
-                  src="/logo-hero.png" 
+                  src="/logo-transparent-hero.png" 
                   alt="Contexto Assessoria Contábil" 
-                  className="relative w-80 h-80 object-contain drop-shadow-2xl"
+                  className="relative w-96 h-96 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.5)]"
                 />
               </div>
             </div>
