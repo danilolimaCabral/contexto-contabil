@@ -3,6 +3,14 @@ import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Calculator,
   FileText,
@@ -14,6 +22,7 @@ import {
   Star,
   Phone,
   CheckCircle2,
+  X,
 } from "lucide-react";
 
 const services = [
@@ -21,31 +30,115 @@ const services = [
     icon: Calculator,
     title: "Contabilidade Empresarial",
     description: "Escrituração contábil completa, balanços e demonstrativos financeiros para sua empresa.",
+    details: {
+      intro: "Nossa equipe de contabilidade oferece um serviço completo e personalizado para sua empresa.",
+      items: [
+        "Escrituração contábil mensal",
+        "Elaboração de balanços patrimoniais",
+        "Demonstração de Resultados (DRE)",
+        "Balancetes mensais e trimestrais",
+        "Livros contábeis obrigatórios",
+        "Análise de indicadores financeiros",
+        "Relatórios gerenciais personalizados",
+        "Conciliação bancária"
+      ],
+      cta: "Ideal para empresas que buscam organização financeira e conformidade legal."
+    }
   },
   {
     icon: FileText,
     title: "Consultoria Tributária",
     description: "Planejamento tributário estratégico para otimizar a carga fiscal do seu negócio.",
+    details: {
+      intro: "Maximize seus resultados com um planejamento tributário inteligente e legal.",
+      items: [
+        "Análise do melhor regime tributário",
+        "Planejamento fiscal estratégico",
+        "Revisão de tributos pagos",
+        "Recuperação de créditos tributários",
+        "Consultoria em ICMS, ISS, PIS, COFINS",
+        "Orientação sobre incentivos fiscais",
+        "Auditoria tributária preventiva",
+        "Defesa em processos fiscais"
+      ],
+      cta: "Reduza legalmente sua carga tributária e aumente sua competitividade."
+    }
   },
   {
     icon: Users,
     title: "Departamento Pessoal",
     description: "Gestão completa de folha de pagamento, admissões, rescisões e obrigações trabalhistas.",
+    details: {
+      intro: "Cuide do seu maior patrimônio: seus colaboradores. Deixe a burocracia conosco.",
+      items: [
+        "Folha de pagamento mensal",
+        "Admissões e rescisões",
+        "Férias e 13º salário",
+        "eSocial e obrigações acessórias",
+        "FGTS e INSS",
+        "Controle de ponto e horas extras",
+        "Orientação trabalhista",
+        "Homologações e acordos"
+      ],
+      cta: "Evite passivos trabalhistas e mantenha sua empresa em conformidade."
+    }
   },
   {
     icon: ClipboardCheck,
     title: "Assessoria Fiscal",
     description: "Apuração de impostos e cumprimento de todas as obrigações acessórias.",
+    details: {
+      intro: "Mantenha sua empresa em dia com o fisco sem preocupações.",
+      items: [
+        "Apuração de impostos federais, estaduais e municipais",
+        "SPED Fiscal e Contribuições",
+        "Emissão de guias de recolhimento",
+        "Declarações acessórias (DCTF, DIRF, etc.)",
+        "Escrituração de notas fiscais",
+        "Controle de certidões negativas",
+        "Parcelamentos de débitos",
+        "Regularização fiscal"
+      ],
+      cta: "Nunca mais perca prazos ou pague multas desnecessárias."
+    }
   },
   {
     icon: Building2,
     title: "Abertura de Empresas",
     description: "Constituição e regularização de empresas de todos os portes e segmentos.",
+    details: {
+      intro: "Abra sua empresa de forma rápida, segura e com toda orientação necessária.",
+      items: [
+        "Abertura de MEI, ME, EPP e LTDA",
+        "Registro na Junta Comercial",
+        "Inscrição Municipal e Estadual",
+        "Alvará de funcionamento",
+        "Alterações contratuais",
+        "Transformação de tipo societário",
+        "Baixa de empresas",
+        "Regularização de pendências"
+      ],
+      cta: "Comece seu negócio com o pé direito e toda documentação em ordem."
+    }
   },
   {
     icon: Briefcase,
     title: "Apoio Administrativo",
     description: "Serviços de escritório e preparação de documentos especializados.",
+    details: {
+      intro: "Suporte completo para as demandas administrativas do seu negócio.",
+      items: [
+        "Emissão de certidões",
+        "Preparação de documentos",
+        "Protocolo em órgãos públicos",
+        "Organização de arquivos",
+        "Digitalização de documentos",
+        "Atendimento a fiscalizações",
+        "Suporte em licitações",
+        "Assessoria documental"
+      ],
+      cta: "Foque no seu negócio enquanto cuidamos da burocracia."
+    }
   },
 ];
 
@@ -91,6 +184,8 @@ const benefits = [
 ];
 
 export default function Home() {
+  const [selectedService, setSelectedService] = useState<typeof services[0] | null>(null);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -154,7 +249,7 @@ export default function Home() {
               <div className="relative">
                 <div className="absolute -inset-8 bg-gradient-to-r from-primary/30 to-primary/10 rounded-full blur-3xl animate-pulse" />
                 <img
-                  src="/logo-hero.png"
+                  src="/logo-transparent-real.png"
                   alt="Contexto Assessoria Contábil"
                   className="relative w-[500px] h-auto drop-shadow-[0_0_30px_rgba(201,169,98,0.4)] hover:drop-shadow-[0_0_50px_rgba(201,169,98,0.6)] transition-all duration-500"
                 />
@@ -164,7 +259,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Services Section */}
+      {/* Services Section with Clickable Cards */}
       <section id="servicos" className="py-24 bg-card">
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -172,7 +267,7 @@ export default function Home() {
               Nossos <span className="text-gold-gradient">Serviços</span>
             </h2>
             <p className="text-muted-foreground text-lg">
-              Oferecemos soluções completas em contabilidade para impulsionar o crescimento do seu negócio.
+              Clique em qualquer serviço para saber mais detalhes sobre como podemos ajudar sua empresa.
             </p>
           </div>
 
@@ -180,15 +275,19 @@ export default function Home() {
             {services.map((service, index) => (
               <div
                 key={index}
-                className="group p-6 bg-background border border-border rounded-2xl card-hover"
+                onClick={() => setSelectedService(service)}
+                className="group p-6 bg-background border border-border rounded-2xl card-hover cursor-pointer transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10"
               >
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                   <service.icon className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="font-serif text-xl font-semibold mb-2">{service.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <h3 className="font-serif text-xl font-semibold mb-2 group-hover:text-primary transition-colors">{service.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                   {service.description}
                 </p>
+                <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                  Saiba mais <ArrowRight className="h-4 w-4" />
+                </span>
               </div>
             ))}
           </div>
@@ -203,6 +302,53 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Service Detail Modal */}
+      <Dialog open={!!selectedService} onOpenChange={() => setSelectedService(null)}>
+        <DialogContent className="sm:max-w-lg bg-card border-border">
+          <DialogHeader>
+            <div className="flex items-center gap-4 mb-2">
+              {selectedService && (
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <selectedService.icon className="h-6 w-6 text-primary" />
+                </div>
+              )}
+              <DialogTitle className="font-serif text-2xl">{selectedService?.title}</DialogTitle>
+            </div>
+            <DialogDescription className="text-base">
+              {selectedService?.details.intro}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <h4 className="font-semibold text-foreground">O que oferecemos:</h4>
+            <ul className="space-y-2">
+              {selectedService?.details.items.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            
+            <p className="text-sm text-primary font-medium pt-2 border-t border-border">
+              {selectedService?.details.cta}
+            </p>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <a href="https://wa.me/5562990700393" target="_blank" rel="noopener noreferrer" className="flex-1">
+              <Button className="btn-gold w-full gap-2">
+                <Phone className="h-4 w-4" />
+                Solicitar Orçamento
+              </Button>
+            </a>
+            <Button variant="outline" onClick={() => setSelectedService(null)} className="border-primary/30">
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Benefits Section */}
       <section className="py-24 bg-background">
@@ -270,8 +416,8 @@ export default function Home() {
                     {member.name.charAt(0)}
                   </span>
                 </div>
-                <h3 className="font-semibold text-lg">{member.name}</h3>
-                <p className="text-sm text-muted-foreground">{member.department}</p>
+                <h3 className="font-semibold mb-1">{member.name}</h3>
+                <p className="text-xs text-muted-foreground">{member.department}</p>
               </div>
             ))}
           </div>
@@ -279,7 +425,7 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section id="depoimentos" className="py-24 bg-background">
+      <section className="py-24 bg-background">
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">
@@ -294,14 +440,14 @@ export default function Home() {
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="p-6 bg-card border border-border rounded-2xl card-hover"
+                className="p-6 bg-card border border-border rounded-2xl"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} className="h-5 w-5 fill-primary text-primary" />
                   ))}
                 </div>
-                <p className="text-muted-foreground mb-6 leading-relaxed">
+                <p className="text-muted-foreground mb-6 italic">
                   "{testimonial.content}"
                 </p>
                 <div>
@@ -315,23 +461,23 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-[#C9A962] to-[#A68B4B]">
+      <section className="py-24 bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A]">
         <div className="container text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4 text-black">
-            Pronto para simplificar sua contabilidade?
+          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6">
+            Pronto para <span className="text-gold-gradient">simplificar</span> sua contabilidade?
           </h2>
-          <p className="text-black/80 text-lg mb-8 max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
             Entre em contato conosco e descubra como podemos ajudar sua empresa a crescer com segurança e tranquilidade.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="https://wa.me/5562990700393" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="bg-black text-white hover:bg-black/90 gap-2">
+              <Button size="lg" className="btn-gold gap-2">
                 <Phone className="h-5 w-5" />
                 Falar pelo WhatsApp
               </Button>
             </a>
             <Link href="/contato">
-              <Button size="lg" variant="outline" className="border-black text-black hover:bg-black/10 gap-2">
+              <Button size="lg" variant="outline" className="gap-2 border-primary/30 hover:bg-primary/10">
                 Enviar Mensagem
                 <ArrowRight className="h-5 w-5" />
               </Button>

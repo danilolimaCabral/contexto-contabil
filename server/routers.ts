@@ -3,12 +3,26 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { createLead, getLeads, updateLeadStatus, createAppointment, getAppointments, updateAppointmentStatus, saveChatMessage, getChatHistory, getActiveTestimonials, createTestimonial } from "./db";
+import { 
+  createLead, getLeads, updateLeadStatus, assignLeadToStaff,
+  createAppointment, getAppointments, updateAppointmentStatus, assignAppointmentToStaff, getAppointmentsByStaff,
+  saveChatMessage, getChatHistory, 
+  getActiveTestimonials, createTestimonial,
+  getStaffMembers, getStaffByDepartment, seedStaffMembers, getLeadsByStaff
+} from "./db";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 
-// System prompt for the AI chatbot - Especialista em Contabilidade e Fiscal
-const CHATBOT_SYSTEM_PROMPT = `Você é o assistente virtual inteligente da Contexto Assessoria Contábil, especializado em contabilidade, legislação fiscal e tributária de TODOS os estados brasileiros.
+// Seed staff members on startup
+seedStaffMembers().catch(console.error);
+
+// System prompt for the AI chatbot - Avatar "Contexto"
+const CHATBOT_SYSTEM_PROMPT = `Você é o "Contexto", o assistente virtual inteligente da Contexto Assessoria Contábil. Você é especializado em contabilidade, legislação fiscal e tributária de TODOS os estados brasileiros.
+
+PERSONALIDADE:
+- Seja amigável, profissional e acolhedor
+- Use linguagem clara e acessível, mas demonstre conhecimento técnico quando necessário
+- Sempre se apresente como "Contexto" quando for a primeira mensagem
 
 INFORMAÇÕES DA EMPRESA:
 - Nome: Contexto Assessoria Contábil
@@ -17,125 +31,93 @@ INFORMAÇÕES DA EMPRESA:
 - Telefone/WhatsApp: (62) 99070-0393
 - E-mail: contextocontabilidadego@gmail.com
 - Instagram: @contexto.contabil
-- Horário de funcionamento: Segunda a Sexta, das 8h às 18h
+- Horário: Segunda a Sexta, 8h às 18h
 
-SERVIÇOS OFERECIDOS:
-1. Contabilidade Empresarial - Escrituração contábil, balanços, demonstrativos, DRE, balancetes
-2. Consultoria e Auditoria Contábil e Tributária - Análise fiscal, planejamento tributário, revisão de impostos
-3. Departamento Pessoal - Folha de pagamento, admissões, rescisões, férias, 13º salário, eSocial
-4. Assessoria Fiscal - Apuração de impostos (ICMS, ISS, PIS, COFINS, IRPJ, CSLL), SPED, obrigações acessórias
-5. Abertura e Regularização de Empresas - MEI, ME, EPP, LTDA, EIRELI, alterações contratuais, baixa de empresas
-6. Serviços de Escritório e Apoio Administrativo - Documentação, certidões, regularização
+EQUIPE POR DEPARTAMENTO:
+- FISCAL: Gabriel e Samarah (ICMS, ISS, PIS, COFINS, SPED, obrigações acessórias)
+- CONTÁBIL: Laura (balanços, DRE, escrituração, análises financeiras)
+- PESSOAL: Janderley, Emily e Júnior (folha de pagamento, eSocial, admissões, rescisões, férias)
+- PARALEGAL: José e Bruna (abertura de empresas, alterações contratuais, documentação)
 
-EQUIPE ESPECIALIZADA:
-- Departamento Fiscal: Gabriel, Samarah (especialistas em ICMS, ISS, tributação)
-- Departamento Contábil: Laura (balanços, demonstrativos, análises)
-- Departamento Pessoal: Janderley, Emily, Júnior (folha, eSocial, trabalhista)
-- Departamento Paralegal: José, Bruna (abertura de empresas, documentação)
+SERVIÇOS E DEPARTAMENTO RESPONSÁVEL:
+1. Contabilidade Empresarial → CONTÁBIL (Laura)
+2. Consultoria Tributária → FISCAL (Gabriel, Samarah)
+3. Departamento Pessoal → PESSOAL (Janderley, Emily, Júnior)
+4. Assessoria Fiscal → FISCAL (Gabriel, Samarah)
+5. Abertura de Empresas → PARALEGAL (José, Bruna)
+6. Apoio Administrativo → PARALEGAL (José, Bruna)
 
-CONHECIMENTO FISCAL E TRIBUTÁRIO POR ESTADO:
+CONHECIMENTO FISCAL (resumo):
+- ICMS: varia por estado (17-20% geral, 25-37% supérfluos)
+- ISS: 2% a 5% conforme município
+- Simples Nacional: Anexos I a V, limite R$ 4,8 milhões/ano
+- Lucro Presumido: 8% comércio, 32% serviços
+- Lucro Real: obrigatório acima de R$ 78 milhões/ano
 
-IMPOSTOS FEDERAIS (aplicáveis a todos os estados):
-- IRPJ (Imposto de Renda Pessoa Jurídica): 15% + adicional de 10% sobre lucro acima de R$20.000/mês
-- CSLL (Contribuição Social sobre Lucro Líquido): 9% para empresas em geral, 15% para instituições financeiras
-- PIS: 0,65% (cumulativo) ou 1,65% (não-cumulativo)
-- COFINS: 3% (cumulativo) ou 7,6% (não-cumulativo)
-- IPI: varia conforme NCM do produto
-- INSS Patronal: 20% sobre folha + RAT (1% a 3%)
-- FGTS: 8% sobre remuneração
+FLUXO DE AGENDAMENTO:
+Quando o cliente quiser AGENDAR REUNIÃO ou CONSULTA, você DEVE:
+1. Perguntar o NOME COMPLETO
+2. Perguntar o TELEFONE com DDD
+3. Perguntar o E-MAIL
+4. Perguntar o ASSUNTO/SERVIÇO desejado
+5. Perguntar a DATA e HORÁRIO preferidos
+6. Confirmar todos os dados antes de finalizar
 
-SIMPLES NACIONAL (todos os estados):
-- Anexo I (Comércio): 4% a 19%
-- Anexo II (Indústria): 4,5% a 30%
-- Anexo III (Serviços): 6% a 33%
-- Anexo IV (Serviços): 4,5% a 33%
-- Anexo V (Serviços): 15,5% a 30,5%
-- Limite: R$ 4,8 milhões/ano
-- Sublimite estadual: R$ 3,6 milhões para ICMS/ISS em alguns estados
+Quando tiver TODOS os dados, responda EXATAMENTE neste formato JSON no final da mensagem:
+[AGENDAMENTO]{"nome":"Nome Completo","telefone":"(XX) XXXXX-XXXX","email":"email@exemplo.com","assunto":"Descrição do assunto","data":"DD/MM/AAAA","horario":"HH:MM","departamento":"fiscal|contabil|pessoal|paralegal"}[/AGENDAMENTO]
 
-ICMS POR ESTADO (alíquotas internas principais):
-- AC (Acre): 17% (geral), 25% (supérfluos)
-- AL (Alagoas): 18% (geral), 25-29% (supérfluos)
-- AP (Amapá): 18% (geral), 25% (supérfluos)
-- AM (Amazonas): 18% (geral), 25-38% (supérfluos) - Zona Franca com benefícios
-- BA (Bahia): 18% (geral), 25-27% (supérfluos)
-- CE (Ceará): 18% (geral), 25-28% (supérfluos)
-- DF (Distrito Federal): 18% (geral), 25-28% (supérfluos)
-- ES (Espírito Santo): 17% (geral), 25-27% (supérfluos)
-- GO (Goiás): 17% (geral), 25-29% (supérfluos) - NOSSA REGIÃO
-- MA (Maranhão): 18% (geral), 25-30% (supérfluos)
-- MT (Mato Grosso): 17% (geral), 25-35% (supérfluos)
-- MS (Mato Grosso do Sul): 17% (geral), 25-28% (supérfluos)
-- MG (Minas Gerais): 18% (geral), 25-30% (supérfluos)
-- PA (Pará): 17% (geral), 25-30% (supérfluos)
-- PB (Paraíba): 18% (geral), 25-27% (supérfluos)
-- PR (Paraná): 19% (geral), 25-29% (supérfluos)
-- PE (Pernambuco): 18% (geral), 25-29% (supérfluos)
-- PI (Piauí): 18% (geral), 25-27% (supérfluos)
-- RJ (Rio de Janeiro): 20% (geral), 25-37% (supérfluos) - inclui FECP
-- RN (Rio Grande do Norte): 18% (geral), 25-27% (supérfluos)
-- RS (Rio Grande do Sul): 17% (geral), 25-30% (supérfluos)
-- RO (Rondônia): 17,5% (geral), 25-35% (supérfluos)
-- RR (Roraima): 17% (geral), 25% (supérfluos)
-- SC (Santa Catarina): 17% (geral), 25% (supérfluos)
-- SP (São Paulo): 18% (geral), 25-30% (supérfluos)
-- SE (Sergipe): 18% (geral), 25-27% (supérfluos)
-- TO (Tocantins): 18% (geral), 25-27% (supérfluos)
+IDENTIFICAÇÃO DE DEPARTAMENTO:
+- Palavras-chave FISCAL: imposto, ICMS, ISS, PIS, COFINS, tributário, nota fiscal, SPED
+- Palavras-chave CONTÁBIL: balanço, DRE, contabilidade, demonstrativo, balancete
+- Palavras-chave PESSOAL: folha, funcionário, admissão, rescisão, férias, 13º, eSocial, CLT
+- Palavras-chave PARALEGAL: abrir empresa, MEI, CNPJ, contrato social, alteração, baixa
 
-ALÍQUOTAS INTERESTADUAIS ICMS:
-- Sul e Sudeste (exceto ES) para Norte, Nordeste, Centro-Oeste e ES: 7%
-- Demais operações interestaduais: 12%
-- Importação: 4%
+INSTRUÇÕES:
+1. Responda dúvidas técnicas com precisão
+2. Quando identificar interesse em serviços, ofereça agendamento
+3. Sempre mencione que atendemos TODO O BRASIL
+4. Para valores específicos, oriente contato pelo WhatsApp
+5. Seja proativo em oferecer ajuda adicional`;
 
-ISS (Imposto sobre Serviços):
-- Alíquota mínima: 2%
-- Alíquota máxima: 5%
-- Varia por município e tipo de serviço
-- Lista de serviços: LC 116/2003
+// Function to extract appointment data from AI response
+function extractAppointmentData(response: string): {
+  nome: string;
+  telefone: string;
+  email: string;
+  assunto: string;
+  data: string;
+  horario: string;
+  departamento: string;
+} | null {
+  const match = response.match(/\[AGENDAMENTO\]([\s\S]*?)\[\/AGENDAMENTO\]/);
+  if (!match) return null;
+  
+  try {
+    return JSON.parse(match[1]);
+  } catch {
+    return null;
+  }
+}
 
-OBRIGAÇÕES ACESSÓRIAS PRINCIPAIS:
-- SPED Fiscal (ICMS/IPI)
-- SPED Contribuições (PIS/COFINS)
-- ECD (Escrituração Contábil Digital)
-- ECF (Escrituração Contábil Fiscal)
-- DCTF (Declaração de Débitos e Créditos Tributários)
-- DIRF (Declaração do Imposto Retido na Fonte)
-- eSocial (obrigações trabalhistas)
-- EFD-Reinf (retenções e informações)
-- DEFIS (Simples Nacional)
-- PGDAS-D (Simples Nacional mensal)
-
-PRAZOS IMPORTANTES:
-- DAS (Simples Nacional): dia 20 de cada mês
-- DARF (tributos federais): varia conforme tributo
-- GPS/INSS: dia 20 do mês seguinte
-- FGTS: dia 7 do mês seguinte
-- ICMS: varia por estado (GO: dia 10 ou 20)
-- ISS: varia por município
-
-REGIMES TRIBUTÁRIOS:
-1. Simples Nacional: faturamento até R$ 4,8 milhões/ano
-2. Lucro Presumido: presunção de lucro (8% comércio, 32% serviços)
-3. Lucro Real: apuração do lucro efetivo (obrigatório acima de R$ 78 milhões/ano)
-
-INSTRUÇÕES DE ATENDIMENTO:
-1. Seja cordial, profissional e técnico quando necessário
-2. Responda em português brasileiro claro
-3. Para dúvidas técnicas, forneça informações precisas com base na legislação
-4. Se o cliente mencionar interesse em contratar serviços, colete: nome completo, telefone, e-mail, tipo de empresa e serviço desejado
-5. Para valores específicos de honorários, oriente a entrar em contato pelo WhatsApp: (62) 99070-0393
-6. Sempre ofereça ajuda adicional ao final das respostas
-7. Se a dúvida for muito específica ou complexa, sugira uma consultoria personalizada
-8. Mencione que atendemos empresas de TODO O BRASIL, não apenas Goiás
-9. Para agendamento de reuniões, pergunte: nome, telefone, melhor dia/horário e assunto
-
-FLUXO DE CONTRATAÇÃO:
-1. Cliente demonstra interesse → Coletar dados básicos
-2. Informar que um especialista entrará em contato em até 24h úteis
-3. Oferecer agendamento de reunião online ou presencial
-4. Para urgências, direcionar ao WhatsApp: (62) 99070-0393
-
-Lembre-se: Você representa um escritório sério e profissional. Suas respostas devem transmitir confiança, conhecimento técnico e disponibilidade para ajudar.`;
+// Function to determine department from message
+function detectDepartment(message: string): "fiscal" | "contabil" | "pessoal" | "paralegal" {
+  const lower = message.toLowerCase();
+  
+  if (/imposto|icms|iss|pis|cofins|tribut|nota fiscal|sped|fiscal/.test(lower)) {
+    return "fiscal";
+  }
+  if (/balanço|dre|contabil|demonstrativo|balancete|escrituração/.test(lower)) {
+    return "contabil";
+  }
+  if (/folha|funcionário|admissão|rescisão|férias|13|esocial|clt|trabalhista|pessoal/.test(lower)) {
+    return "pessoal";
+  }
+  if (/abrir empresa|mei|cnpj|contrato social|alteração|baixa|paralegal|documentação/.test(lower)) {
+    return "paralegal";
+  }
+  
+  return "contabil"; // Default
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -147,6 +129,19 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+  }),
+
+  // Staff management
+  staff: router({
+    list: publicProcedure.query(async () => {
+      return getStaffMembers();
+    }),
+    
+    byDepartment: publicProcedure
+      .input(z.object({ department: z.enum(["fiscal", "contabil", "pessoal", "paralegal"]) }))
+      .query(async ({ input }) => {
+        return getStaffByDepartment(input.department);
+      }),
   }),
 
   // Lead management
@@ -163,7 +158,6 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const lead = await createLead(input);
         
-        // Notify owner about new lead
         if (lead) {
           await notifyOwner({
             title: "🎯 Novo Lead Capturado!",
@@ -177,6 +171,12 @@ export const appRouter = router({
     list: protectedProcedure.query(async () => {
       return getLeads();
     }),
+
+    myLeads: protectedProcedure
+      .input(z.object({ staffId: z.number() }))
+      .query(async ({ input }) => {
+        return getLeadsByStaff(input.staffId);
+      }),
     
     updateStatus: protectedProcedure
       .input(z.object({
@@ -185,6 +185,13 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await updateLeadStatus(input.id, input.status);
+        return { success: true };
+      }),
+
+    assign: protectedProcedure
+      .input(z.object({ leadId: z.number(), staffId: z.number() }))
+      .mutation(async ({ input }) => {
+        await assignLeadToStaff(input.leadId, input.staffId);
         return { success: true };
       }),
   }),
@@ -199,12 +206,13 @@ export const appRouter = router({
         scheduledDate: z.string().transform(s => new Date(s)),
         duration: z.number().default(30),
         subject: z.string().optional(),
+        serviceType: z.enum(["contabilidade", "tributaria", "pessoal", "fiscal", "abertura", "administrativo"]).optional(),
         notes: z.string().optional(),
+        staffMemberId: z.number().optional(),
       }))
       .mutation(async ({ input }) => {
         const appointment = await createAppointment(input);
         
-        // Notify owner about new appointment
         if (appointment) {
           await notifyOwner({
             title: "📅 Nova Reunião Agendada!",
@@ -218,6 +226,12 @@ export const appRouter = router({
     list: protectedProcedure.query(async () => {
       return getAppointments();
     }),
+
+    myAppointments: protectedProcedure
+      .input(z.object({ staffId: z.number() }))
+      .query(async ({ input }) => {
+        return getAppointmentsByStaff(input.staffId);
+      }),
     
     updateStatus: protectedProcedure
       .input(z.object({
@@ -228,9 +242,16 @@ export const appRouter = router({
         await updateAppointmentStatus(input.id, input.status);
         return { success: true };
       }),
+
+    assign: protectedProcedure
+      .input(z.object({ appointmentId: z.number(), staffId: z.number() }))
+      .mutation(async ({ input }) => {
+        await assignAppointmentToStaff(input.appointmentId, input.staffId);
+        return { success: true };
+      }),
   }),
 
-  // AI Chatbot with full accounting intelligence
+  // AI Chatbot - Avatar "Contexto"
   chat: router({
     send: publicProcedure
       .input(z.object({
@@ -262,7 +283,51 @@ export const appRouter = router({
         // Call LLM
         const response = await invokeLLM({ messages });
         const rawContent = response.choices[0]?.message?.content;
-        const assistantMessage = typeof rawContent === 'string' ? rawContent : "Desculpe, não consegui processar sua mensagem. Por favor, tente novamente ou entre em contato pelo WhatsApp (62) 99070-0393.";
+        let assistantMessage = typeof rawContent === 'string' ? rawContent : "Desculpe, não consegui processar sua mensagem. Por favor, tente novamente ou entre em contato pelo WhatsApp (62) 99070-0393.";
+        
+        // Check for appointment data in response
+        const appointmentData = extractAppointmentData(assistantMessage);
+        let appointmentCreated = null;
+        
+        if (appointmentData) {
+          try {
+            // Parse date and time
+            const [day, month, year] = appointmentData.data.split("/");
+            const [hour, minute] = appointmentData.horario.split(":");
+            const scheduledDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+            
+            // Get staff from department
+            const department = appointmentData.departamento as "fiscal" | "contabil" | "pessoal" | "paralegal";
+            const staffList = await getStaffByDepartment(department);
+            const assignedStaff = staffList[0]; // Assign to first available
+            
+            // Create appointment
+            appointmentCreated = await createAppointment({
+              name: appointmentData.nome,
+              phone: appointmentData.telefone,
+              email: appointmentData.email,
+              scheduledDate,
+              subject: appointmentData.assunto,
+              staffMemberId: assignedStaff?.id,
+              notes: `Agendado via chatbot. Departamento: ${department}`,
+            });
+            
+            // Notify owner
+            if (appointmentCreated) {
+              await notifyOwner({
+                title: "📅 Agendamento via Chatbot!",
+                content: `Cliente: ${appointmentData.nome}\nTelefone: ${appointmentData.telefone}\nE-mail: ${appointmentData.email}\nData: ${appointmentData.data} às ${appointmentData.horario}\nAssunto: ${appointmentData.assunto}\nDepartamento: ${department}\nResponsável: ${assignedStaff?.name || "A definir"}`,
+              });
+            }
+            
+            // Remove JSON from response for cleaner display
+            assistantMessage = assistantMessage.replace(/\[AGENDAMENTO\][\s\S]*?\[\/AGENDAMENTO\]/, "").trim();
+            assistantMessage += `\n\n✅ **Agendamento confirmado!**\nSua reunião foi agendada para ${appointmentData.data} às ${appointmentData.horario}.\nResponsável: ${assignedStaff?.name || "Nossa equipe"}\nVocê receberá uma confirmação em breve.`;
+            
+          } catch (error) {
+            console.error("Error creating appointment from chat:", error);
+          }
+        }
         
         // Save assistant response
         await saveChatMessage({
@@ -271,19 +336,22 @@ export const appRouter = router({
           content: assistantMessage,
         });
         
-        // Check if user wants to hire services (lead capture)
+        // Check for hiring interest
         const hiringKeywords = ["contratar", "orçamento", "preço", "valor", "quanto custa", "interesse", "quero", "preciso de"];
         const wantsToHire = hiringKeywords.some(keyword => message.toLowerCase().includes(keyword));
         
-        if (wantsToHire) {
-          // Notify owner about potential lead
+        if (wantsToHire && !appointmentCreated) {
           await notifyOwner({
             title: "💼 Potencial Cliente no Chat!",
             content: `Mensagem: ${message}\n\nO cliente demonstrou interesse em serviços. Verifique o chat para mais detalhes.`,
           });
         }
         
-        return { response: assistantMessage };
+        return { 
+          response: assistantMessage,
+          appointmentCreated: !!appointmentCreated,
+          detectedDepartment: detectDepartment(message),
+        };
       }),
     
     history: publicProcedure

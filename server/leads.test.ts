@@ -18,11 +18,32 @@ vi.mock("./db", () => ({
   }),
   getLeads: vi.fn().mockResolvedValue([]),
   updateLeadStatus: vi.fn().mockResolvedValue(undefined),
+  assignLeadToStaff: vi.fn().mockResolvedValue(undefined),
+  getLeadsByStaff: vi.fn().mockResolvedValue([]),
+  createAppointment: vi.fn().mockResolvedValue(null),
+  getAppointments: vi.fn().mockResolvedValue([]),
+  updateAppointmentStatus: vi.fn().mockResolvedValue(undefined),
+  assignAppointmentToStaff: vi.fn().mockResolvedValue(undefined),
+  getAppointmentsByStaff: vi.fn().mockResolvedValue([]),
+  saveChatMessage: vi.fn().mockResolvedValue(undefined),
+  getChatHistory: vi.fn().mockResolvedValue([]),
+  getActiveTestimonials: vi.fn().mockResolvedValue([]),
+  createTestimonial: vi.fn().mockResolvedValue(undefined),
+  getStaffMembers: vi.fn().mockResolvedValue([]),
+  getStaffByDepartment: vi.fn().mockResolvedValue([]),
+  seedStaffMembers: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Mock the notification function
 vi.mock("./_core/notification", () => ({
   notifyOwner: vi.fn().mockResolvedValue(true),
+}));
+
+// Mock the LLM function
+vi.mock("./_core/llm", () => ({
+  invokeLLM: vi.fn().mockResolvedValue({
+    choices: [{ message: { content: "Test response" } }],
+  }),
 }));
 
 function createPublicContext(): TrpcContext {

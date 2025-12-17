@@ -15,6 +15,13 @@
       "when": 1765940539476,
       "tag": "0001_loose_penance",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1765941884739,
+      "tag": "0002_loud_scream",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, leads, InsertLead, Lead, appointments, InsertAppointment, Appointment, chatMessages, InsertChatMessage, ChatMessage, testimonials, Testimonial } from "../drizzle/schema";
+import { InsertUser, users, leads, InsertLead, Lead, appointments, InsertAppointment, Appointment, chatMessages, InsertChatMessage, ChatMessage, testimonials, Testimonial, staffMembers, StaffMember, InsertStaffMember } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,6 +89,54 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+// ==================== STAFF MEMBER FUNCTIONS ====================
+
+export async function createStaffMember(staff: InsertStaffMember): Promise<StaffMember | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const result = await db.insert(staffMembers).values(staff);
+    const insertId = result[0].insertId;
+    const newStaff = await db.select().from(staffMembers).where(eq(staffMembers.id, insertId)).limit(1);
+    return newStaff[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to create staff member:", error);
+    throw error;
+  }
+}
+
+export async function getStaffMembers(): Promise<StaffMember[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(staffMembers).where(eq(staffMembers.isActive, true)).orderBy(staffMembers.department);
+}
+
+export async function getStaffByDepartment(department: StaffMember["department"]): Promise<StaffMember[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(staffMembers).where(
+    and(eq(staffMembers.department, department), eq(staffMembers.isActive, true))
+  );
+}
+
+export async function getStaffById(id: number): Promise<StaffMember | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(staffMembers).where(eq(staffMembers.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function linkUserToStaff(userId: number, staffId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(staffMembers).set({ userId }).where(eq(staffMembers.id, staffId));
+}
+
 // ==================== LEAD FUNCTIONS ====================
 
 export async function createLead(lead: InsertLead): Promise<Lead | null> {
@@ -116,11 +164,25 @@ export async function getLeads(): Promise<Lead[]> {
   return db.select().from(leads).orderBy(desc(leads.createdAt));
 }
 
+export async function getLeadsByStaff(staffId: number): Promise<Lead[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(leads).where(eq(leads.assignedToId, staffId)).orderBy(desc(leads.createdAt));
+}
+
 export async function updateLeadStatus(id: number, status: Lead["status"]): Promise<void> {
   const db = await getDb();
   if (!db) return;
 
   await db.update(leads).set({ status }).where(eq(leads.id, id));
+}
+
+export async function assignLeadToStaff(leadId: number, staffId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(leads).set({ assignedToId: staffId }).where(eq(leads.id, leadId));
 }
 
 // ==================== APPOINTMENT FUNCTIONS ====================
@@ -150,11 +212,25 @@ export async function getAppointments(): Promise<Appointment[]> {
   return db.select().from(appointments).orderBy(desc(appointments.scheduledDate));
 }
 
+export async function getAppointmentsByStaff(staffId: number): Promise<Appointment[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(appointments).where(eq(appointments.staffMemberId, staffId)).orderBy(desc(appointments.scheduledDate));
+}
+
 export async function updateAppointmentStatus(id: number, status: Appointment["status"]): Promise<void> {
   const db = await getDb();
   if (!db) return;
 
   await db.update(appointments).set({ status }).where(eq(appointments.id, id));
+}
+
+export async function assignAppointmentToStaff(appointmentId: number, staffId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(appointments).set({ staffMemberId: staffId }).where(eq(appointments.id, appointmentId));
 }
 
 // ==================== CHAT MESSAGE FUNCTIONS ====================
@@ -187,4 +263,31 @@ export async function createTestimonial(testimonial: Omit<Testimonial, "id" | "c
   if (!db) return;
 
   await db.insert(testimonials).values(testimonial);
+}
+
+// ==================== SEED STAFF MEMBERS ====================
+
+export async function seedStaffMembers(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const existingStaff = await getStaffMembers();
+  if (existingStaff.length > 0) return; // Already seeded
+
+  const staffData: InsertStaffMember[] = [
+    { name: "Gabriel", department: "fiscal", position: "Analista Fiscal", avatarColor: "from-amber-500 to-amber-700" },
+    { name: "Samarah", department: "fiscal", position: "Analista Fiscal", avatarColor: "from-amber-500 to-amber-700" },
+    { name: "Laura", department: "contabil", position: "Analista Contábil", avatarColor: "from-emerald-500 to-emerald-700" },
+    { name: "Janderley", department: "pessoal", position: "Analista de DP", avatarColor: "from-blue-500 to-blue-700" },
+    { name: "Emily", department: "pessoal", position: "Analista de DP", avatarColor: "from-blue-500 to-blue-700" },
+    { name: "Júnior", department: "pessoal", position: "Analista de DP", avatarColor: "from-blue-500 to-blue-700" },
+    { name: "José", department: "paralegal", position: "Analista Paralegal", avatarColor: "from-purple-500 to-purple-700" },
+    { name: "Bruna", department: "paralegal", position: "Analista Paralegal", avatarColor: "from-purple-500 to-purple-700" },
+  ];
+
+  for (const staff of staffData) {
+    await createStaffMember(staff);
+  }
+
+  console.log("[Database] Staff members seeded successfully");
 }
