@@ -23,7 +23,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <img
-              src="/logo-modern.png"
+              src="/logo-header.png"
               alt="Contexto Assessoria Contábil"
               className="h-14 w-auto"
             />

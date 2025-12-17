@@ -62,3 +62,12 @@
 - [x] Visão completa para administradores
 - [x] Link do painel no menu de navegação (visível para usuários autenticados)
 - [x] Testes unitários para appointments
+
+## Relatórios e Gráficos
+- [x] Gráfico de agendamentos por período (diário, semanal, mensal)
+- [x] Gráfico de desempenho por membro da equipe
+- [x] Gráfico de leads por status
+- [x] Estatísticas de conversão
+- [x] Filtros de período para os relatórios
+- [x] Tabela de desempenho detalhada
+- [x] Arrumar logos com fundo transparente

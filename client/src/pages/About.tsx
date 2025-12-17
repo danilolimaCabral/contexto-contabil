@@ -133,7 +133,7 @@ export default function About() {
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary/5 rounded-3xl blur-2xl" />
               <img
-                src="/logo-modern.png"
+                src="/logo-header.png"
                 alt="Contexto Assessoria Contábil"
                 className="relative w-full max-w-md mx-auto gold-glow rounded-2xl"
               />

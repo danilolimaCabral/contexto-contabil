@@ -11,7 +11,7 @@ export default function Footer() {
           {/* Logo e Descrição */}
           <div className="space-y-4">
             <img
-              src="/logo-modern.png"
+              src="/logo-header.png"
               alt="Contexto Assessoria Contábil"
               className="h-16 w-auto"
             />

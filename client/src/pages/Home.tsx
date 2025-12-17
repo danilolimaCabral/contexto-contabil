@@ -249,7 +249,7 @@ export default function Home() {
               <div className="relative">
                 <div className="absolute -inset-8 bg-gradient-to-r from-primary/30 to-primary/10 rounded-full blur-3xl animate-pulse" />
                 <img
-                  src="/logo-transparent-real.png"
+                  src="/logo-final.png"
                   alt="Contexto Assessoria Contábil"
                   className="relative w-[500px] h-auto drop-shadow-[0_0_30px_rgba(201,169,98,0.4)] hover:drop-shadow-[0_0_50px_rgba(201,169,98,0.6)] transition-all duration-500"
                 />
