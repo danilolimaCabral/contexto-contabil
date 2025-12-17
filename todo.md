@@ -53,3 +53,12 @@
 - [x] Júnior - Departamento Pessoal
 - [x] José - Departamento Paralegal
 - [x] Bruna - Departamento Paralegal
+
+## Painel Administrativo
+- [x] Dashboard com visão geral dos agendamentos
+- [x] Lista de agendamentos filtráveis por status e departamento
+- [x] Gerenciamento de leads
+- [x] Visualização por funcionário (cada um vê seus próprios agendamentos)
+- [x] Visão completa para administradores
+- [x] Link do painel no menu de navegação (visível para usuários autenticados)
+- [x] Testes unitários para appointments

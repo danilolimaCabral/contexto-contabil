@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 const navLinks = [
   { href: "/", label: "Início" },
@@ -13,6 +14,7 @@ const navLinks = [
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [location] = useLocation();
+  const { user, isAuthenticated } = useAuth();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -42,6 +44,19 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+            {isAuthenticated && (
+              <Link
+                href="/admin"
+                className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 ${
+                  location === "/admin" || location === "/dashboard"
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                }`}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Painel
+              </Link>
+            )}
           </nav>
 
           {/* CTA Button */}
@@ -86,6 +101,20 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
+              {isAuthenticated && (
+                <Link
+                  href="/admin"
+                  className={`text-sm font-medium transition-colors hover:text-primary px-2 py-2 flex items-center gap-1 ${
+                    location === "/admin" || location === "/dashboard"
+                      ? "text-primary"
+                      : "text-muted-foreground"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Painel Administrativo
+                </Link>
+              )}
               <a
                 href="https://wa.me/5562990700393"
                 target="_blank"
