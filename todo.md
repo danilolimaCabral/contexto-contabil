@@ -33,3 +33,8 @@
 
 ## Design
 - [x] Criar logo moderna e séria com nano banana
+
+## Melhorias
+- [x] Logo com fundo transparente para efeito flutuante
+- [x] Chatbot com IA especializada em contabilidade e fiscal de todos os estados
+- [x] Chatbot capaz de responder dúvidas técnicas e encaminhar contratações

@@ -152,11 +152,11 @@ export default function Home() {
 
             <div className="hidden lg:flex justify-center">
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary/5 rounded-3xl blur-2xl" />
+                <div className="absolute -inset-8 bg-gradient-to-r from-primary/30 to-primary/10 rounded-full blur-3xl animate-pulse" />
                 <img
-                  src="/logo-modern.png"
+                  src="/logo-hero.png"
                   alt="Contexto Assessoria Contábil"
-                  className="relative w-96 h-auto gold-glow rounded-2xl"
+                  className="relative w-[500px] h-auto drop-shadow-[0_0_30px_rgba(201,169,98,0.4)] hover:drop-shadow-[0_0_50px_rgba(201,169,98,0.6)] transition-all duration-500"
                 />
               </div>
             </div>
