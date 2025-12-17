@@ -8,7 +8,8 @@ import {
   createAppointment, getAppointments, updateAppointmentStatus, assignAppointmentToStaff, getAppointmentsByStaff,
   saveChatMessage, getChatHistory, 
   getActiveTestimonials, createTestimonial,
-  getStaffMembers, getStaffByDepartment, seedStaffMembers, getLeadsByStaff
+  getStaffMembers, getStaffByDepartment, seedStaffMembers, getLeadsByStaff,
+  getAllStaffMembers, createStaffMember, updateStaffMember, deactivateStaffMember, reactivateStaffMember
 } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
@@ -134,6 +135,10 @@ export const appRouter = router({
   // Staff management
   staff: router({
     list: publicProcedure.query(async () => {
+      return getAllStaffMembers();
+    }),
+    
+    listActive: publicProcedure.query(async () => {
       return getStaffMembers();
     }),
     
@@ -141,6 +146,47 @@ export const appRouter = router({
       .input(z.object({ department: z.enum(["fiscal", "contabil", "pessoal", "paralegal"]) }))
       .query(async ({ input }) => {
         return getStaffByDepartment(input.department);
+      }),
+      
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        department: z.enum(["fiscal", "contabil", "pessoal", "paralegal"]),
+        position: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return createStaffMember(input);
+      }),
+      
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        department: z.enum(["fiscal", "contabil", "pessoal", "paralegal"]).optional(),
+        position: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        await updateStaffMember(id, data);
+        return { success: true };
+      }),
+      
+    deactivate: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deactivateStaffMember(input.id);
+        return { success: true };
+      }),
+      
+    reactivate: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await reactivateStaffMember(input.id);
+        return { success: true };
       }),
   }),
 

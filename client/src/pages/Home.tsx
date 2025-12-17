@@ -505,7 +505,8 @@ export default function Home() {
               <div
                 key={index}
                 onClick={() => handleMemberClick(member)}
-                className="group text-center p-6 bg-background border border-border rounded-2xl card-hover cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10"
+                className="group text-center p-6 bg-background border border-border rounded-2xl card-hover cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 animate-in fade-in slide-in-from-bottom-4 duration-500"
+                style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'both' }}
               >
                 <div className="relative w-24 h-24 mx-auto mb-4">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full animate-pulse group-hover:from-primary/40 group-hover:to-primary/20 transition-all" />
@@ -513,6 +514,11 @@ export default function Home() {
                     src={member.avatar} 
                     alt={member.name}
                     className="relative w-full h-full object-cover rounded-full border-2 border-primary/30 group-hover:border-primary transition-all group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  {/* Status Online Indicator */}
+                  <div className={`absolute top-0 right-0 w-4 h-4 rounded-full border-2 border-background ${index % 3 === 0 ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} 
+                       title={index % 3 === 0 ? 'Online' : 'Offline'}
                   />
                   <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <MessageCircle className="h-4 w-4 text-primary-foreground" />
@@ -520,7 +526,13 @@ export default function Home() {
                 </div>
                 <h3 className="font-semibold mb-1 group-hover:text-primary transition-colors">{member.name}</h3>
                 <p className="text-xs text-muted-foreground">{member.department}</p>
-                <p className="text-xs text-primary mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center justify-center gap-1 mt-2">
+                  <span className={`w-2 h-2 rounded-full ${index % 3 === 0 ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <p className={`text-xs ${index % 3 === 0 ? 'text-green-500' : 'text-muted-foreground'}`}>
+                    {index % 3 === 0 ? 'Online' : 'Offline'}
+                  </p>
+                </div>
+                <p className="text-xs text-primary mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   Clique para conversar
                 </p>
               </div>

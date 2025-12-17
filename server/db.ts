@@ -137,6 +137,53 @@ export async function linkUserToStaff(userId: number, staffId: number): Promise<
   await db.update(staffMembers).set({ userId }).where(eq(staffMembers.id, staffId));
 }
 
+export async function updateStaffOnlineStatus(staffId: number, isOnline: boolean): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(staffMembers).set({ 
+    isOnline, 
+    lastSeen: new Date() 
+  }).where(eq(staffMembers.id, staffId));
+}
+
+export async function getOnlineStaff(): Promise<StaffMember[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(staffMembers).where(
+    and(eq(staffMembers.isActive, true), eq(staffMembers.isOnline, true))
+  );
+}
+
+export async function getAllStaffMembers(): Promise<StaffMember[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(staffMembers).orderBy(staffMembers.department);
+}
+
+export async function updateStaffMember(id: number, data: Partial<InsertStaffMember>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(staffMembers).set(data).where(eq(staffMembers.id, id));
+}
+
+export async function deactivateStaffMember(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(staffMembers).set({ isActive: false }).where(eq(staffMembers.id, id));
+}
+
+export async function reactivateStaffMember(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(staffMembers).set({ isActive: true }).where(eq(staffMembers.id, id));
+}
+
 // ==================== LEAD FUNCTIONS ====================
 
 export async function createLead(lead: InsertLead): Promise<Lead | null> {

@@ -4,6 +4,11 @@ import type { TrpcContext } from "./_core/context";
 
 // Mock the database functions
 vi.mock("./db", () => ({
+  getAllStaffMembers: vi.fn().mockResolvedValue([
+    { id: 1, name: "Gabriel", department: "fiscal", position: "Analista Fiscal", isActive: true },
+    { id: 2, name: "Samarah", department: "fiscal", position: "Analista Fiscal", isActive: true },
+    { id: 3, name: "Laura", department: "contabil", position: "Analista Contábil", isActive: true },
+  ]),
   getStaffMembers: vi.fn().mockResolvedValue([
     { id: 1, name: "Gabriel", department: "fiscal", position: "Analista Fiscal", isActive: true },
     { id: 2, name: "Samarah", department: "fiscal", position: "Analista Fiscal", isActive: true },
@@ -32,6 +37,10 @@ vi.mock("./db", () => ({
   getActiveTestimonials: vi.fn(),
   createTestimonial: vi.fn(),
   getLeadsByStaff: vi.fn(),
+  createStaffMember: vi.fn(),
+  updateStaffMember: vi.fn(),
+  deactivateStaffMember: vi.fn(),
+  reactivateStaffMember: vi.fn(),
 }));
 
 function createPublicContext(): TrpcContext {

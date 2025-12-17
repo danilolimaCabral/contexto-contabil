@@ -10,6 +10,8 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import Reports from "./pages/Reports";
+import AdminPanel from "./pages/AdminPanel";
+import MemberDashboard from "./pages/MemberDashboard";
 
 function Router() {
   return (
@@ -18,8 +20,9 @@ function Router() {
       <Route path="/servicos" component={Services} />
       <Route path="/sobre" component={About} />
       <Route path="/contato" component={Contact} />
-      <Route path="/admin" component={Dashboard} />
+      <Route path="/admin" component={AdminPanel} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/meu-painel" component={MemberDashboard} />
       <Route path="/relatorios" component={Reports} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

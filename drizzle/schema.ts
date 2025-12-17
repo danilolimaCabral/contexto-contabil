@@ -30,6 +30,8 @@ export const staffMembers = mysqlTable("staff_members", {
   department: mysqlEnum("department", ["fiscal", "contabil", "pessoal", "paralegal"]).notNull(),
   position: varchar("position", { length: 255 }),
   isActive: boolean("isActive").default(true),
+  isOnline: boolean("isOnline").default(false),
+  lastSeen: timestamp("lastSeen"),
   avatarColor: varchar("avatarColor", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

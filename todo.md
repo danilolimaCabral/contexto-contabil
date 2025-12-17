@@ -77,6 +77,21 @@
 - [x] Tornar avatares clicáveis para abrir chat direto
 - [x] Sistema de chat por departamento/pessoa
 - [x] Gravar todas as conversas no banco de dados
-- [ ] Status online/offline para membros da equipe
+- [x] Status online/offline para membros da equipe
 - [x] Remover fundo escuro da logo hero e deixar transparente
 - [x] Subir posição da logo no hero
+- [x] Animação de carregamento suave nos avatares 3D
+
+## Painel Individual de Usuário
+- [x] Página de login para cada membro da equipe
+- [x] Painel individual mostrando atendimentos do usuário
+- [x] Visualização de agendamentos pessoais
+- [x] Histórico de conversas do usuário
+- [x] Filtros por data e status
+
+## Painel Admin para Manutenção
+- [x] Gerenciamento de funcionários (adicionar, editar, desativar)
+- [x] Controle de acessos de usuários
+- [x] Visualização de todos os atendimentos da equipe
+- [x] Histórico de funcionários desligados
+- [x] Testes unitários para rotas de admin
