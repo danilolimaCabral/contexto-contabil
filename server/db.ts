@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, leads, InsertLead, Lead, appointments, InsertAppointment, Appointment, chatMessages, InsertChatMessage, ChatMessage, testimonials, Testimonial, staffMembers, StaffMember, InsertStaffMember, clients, Client, InsertClient, clientServices, ClientService, InsertClientService, serviceUpdates, ServiceUpdate, InsertServiceUpdate, clientDocuments, ClientDocument, InsertClientDocument, serviceRequests, ServiceRequest, InsertServiceRequest } from "../drizzle/schema";
+import { InsertUser, users, leads, InsertLead, Lead, appointments, InsertAppointment, Appointment, chatMessages, InsertChatMessage, ChatMessage, testimonials, Testimonial, staffMembers, StaffMember, InsertStaffMember, clients, Client, InsertClient, clientServices, ClientService, InsertClientService, serviceUpdates, ServiceUpdate, InsertServiceUpdate, clientDocuments, ClientDocument, InsertClientDocument, serviceRequests, ServiceRequest, InsertServiceRequest, news, News, InsertNews } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -558,4 +558,205 @@ export async function convertServiceRequestToService(
   }).where(eq(serviceRequests.id, requestId));
 
   return service;
+}
+
+// ==================== NEWS FUNCTIONS ====================
+
+export async function createNews(newsItem: InsertNews): Promise<News | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const result = await db.insert(news).values(newsItem);
+    const insertId = result[0].insertId;
+    const newNews = await db.select().from(news).where(eq(news.id, insertId)).limit(1);
+    return newNews[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to create news:", error);
+    throw error;
+  }
+}
+
+export async function getActiveNews(limit: number = 20): Promise<News[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(news)
+    .where(eq(news.isActive, true))
+    .orderBy(desc(news.publishedAt))
+    .limit(limit);
+}
+
+export async function getFeaturedNews(limit: number = 5): Promise<News[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(news)
+    .where(and(eq(news.isActive, true), eq(news.isFeatured, true)))
+    .orderBy(desc(news.publishedAt))
+    .limit(limit);
+}
+
+export async function getNewsByCategory(category: News["category"], limit: number = 10): Promise<News[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(news)
+    .where(and(eq(news.isActive, true), eq(news.category, category)))
+    .orderBy(desc(news.publishedAt))
+    .limit(limit);
+}
+
+export async function getNewsById(id: number): Promise<News | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(news).where(eq(news.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function incrementNewsViewCount(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const currentNews = await getNewsById(id);
+  if (currentNews) {
+    await db.update(news).set({ viewCount: (currentNews.viewCount || 0) + 1 }).where(eq(news.id, id));
+  }
+}
+
+export async function updateNews(id: number, data: Partial<InsertNews>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(news).set(data).where(eq(news.id, id));
+}
+
+export async function deleteNews(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(news).set({ isActive: false }).where(eq(news.id, id));
+}
+
+export async function getAllNews(): Promise<News[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(news).orderBy(desc(news.publishedAt));
+}
+
+export async function seedInitialNews(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const existingNews = await getActiveNews(1);
+  if (existingNews.length > 0) return; // Already seeded
+
+  const initialNews: InsertNews[] = [
+    {
+      title: "Reforma Tributária 2024: Novo IVA unifica PIS, Cofins, ICMS, ISS e IPI em imposto único",
+      summary: "A Câmara dos Deputados aprovou o projeto de lei complementar que regulamenta a reforma tributária, unificando cinco tributos em um único imposto sobre valor agregado (IVA dual).",
+      content: "A reforma tributária representa a maior mudança no sistema de impostos brasileiro em décadas. O novo modelo substitui cinco tributos (PIS, Cofins, IPI, ICMS e ISS) por dois novos impostos: a CBS (Contribuição sobre Bens e Serviços), de competência federal, e o IBS (Imposto sobre Bens e Serviços), de competência estadual e municipal.",
+      category: "reforma_tributaria",
+      source: "Portal Contábeis",
+      sourceUrl: "https://www.contabeis.com.br",
+      isFeatured: true,
+      publishedAt: new Date(),
+    },
+    {
+      title: "CBS e IBS: Novos impostos começam a ser implementados gradualmente a partir de 2026",
+      summary: "O período de transição para os novos tributos CBS e IBS terá início em janeiro de 2026, com alíquotas reduzidas durante a fase de testes.",
+      content: "A implementação dos novos impostos será gradual, começando com alíquotas de teste em 2026. A CBS terá alíquota de 0,9% e o IBS de 0,1% durante o período experimental. A transição completa está prevista para ser concluída até 2033.",
+      category: "tributario",
+      source: "Receita Federal",
+      sourceUrl: "https://www.gov.br/receitafederal",
+      isFeatured: true,
+      publishedAt: new Date(Date.now() - 3600000),
+    },
+    {
+      title: "Imposto sobre dividendos também atinge empresas do Simples Nacional",
+      summary: "Receita Federal esclarece que lucros e dividendos de empresas do Simples Nacional estarão sujeitos ao Imposto de Renda Mínimo a partir de 2026.",
+      content: "Em esclarecimento recente, a Receita Federal confirmou que as empresas optantes pelo Simples Nacional também serão afetadas pela tributação sobre dividendos prevista na reforma tributária. A medida visa garantir maior equidade tributária entre os diferentes regimes.",
+      category: "fiscal",
+      source: "Portal Contábeis",
+      sourceUrl: "https://www.contabeis.com.br",
+      isFeatured: true,
+      publishedAt: new Date(Date.now() - 7200000),
+    },
+    {
+      title: "eSocial: Novas regras para declaração de eventos trabalhistas entram em vigor",
+      summary: "Empresas devem se adequar às novas regras do eSocial que entram em vigor em 2025, com prazos mais rigorosos para envio de informações.",
+      content: "O eSocial passa por mais uma atualização importante. As empresas precisam estar atentas aos novos prazos e formatos de envio de eventos trabalhistas, incluindo admissões, demissões e alterações contratuais.",
+      category: "trabalhista",
+      source: "Fenacon",
+      sourceUrl: "https://fenacon.org.br",
+      isFeatured: false,
+      publishedAt: new Date(Date.now() - 10800000),
+    },
+    {
+      title: "Receita Federal quase dobra lista de benefícios fiscais da DIRBI",
+      summary: "Receita Federal inclui 85 novos benefícios fiscais na DIRBI e declaração passa a ter 173 incentivos tributários.",
+      content: "A Receita Federal ampliou significativamente a lista de benefícios fiscais que devem ser declarados na DIRBI (Declaração de Incentivos, Renúncias, Benefícios e Imunidades de Natureza Tributária). A medida visa aumentar a transparência sobre os incentivos fiscais concedidos.",
+      category: "fiscal",
+      source: "Agência Brasil",
+      sourceUrl: "https://agenciabrasil.ebc.com.br",
+      isFeatured: false,
+      publishedAt: new Date(Date.now() - 86400000),
+    },
+    {
+      title: "Carga tributária brasileira atinge 32,2% do PIB em 2024",
+      summary: "Brasil registra a maior carga tributária bruta dos últimos 22 anos, com alta de 1,98 ponto porcentual em relação ao ano anterior.",
+      content: "Os dados divulgados mostram que a carga tributária brasileira atingiu seu maior patamar em mais de duas décadas. O aumento reflete tanto o crescimento da arrecadação quanto as mudanças na estrutura tributária do país.",
+      category: "economia",
+      source: "Portal Contábil SC",
+      sourceUrl: "https://portalcontabilsc.com.br",
+      isFeatured: false,
+      publishedAt: new Date(Date.now() - 172800000),
+    },
+    {
+      title: "Comitê Gestor do IBS divulga orientações sobre entrada em vigor dos novos impostos",
+      summary: "Documento esclarece as obrigações dos contribuintes durante o período de transição da reforma tributária.",
+      content: "O Comitê Gestor do IBS, em conjunto com a Receita Federal, publicou documento com orientações detalhadas sobre como os contribuintes devem se preparar para a entrada em vigor da CBS e do IBS em janeiro de 2026.",
+      category: "tributario",
+      source: "Secretaria da Fazenda RS",
+      sourceUrl: "https://fazenda.rs.gov.br",
+      isFeatured: false,
+      publishedAt: new Date(Date.now() - 259200000),
+    },
+    {
+      title: "IRPF 2025: Rendimentos até R$ 7.350 terão redução do imposto",
+      summary: "Nova faixa de isenção e alíquotas reduzidas beneficiarão contribuintes de menor renda no próximo ano.",
+      content: "A Receita Federal anunciou mudanças nas faixas de tributação do Imposto de Renda Pessoa Física para 2025. Contribuintes com rendimentos tributáveis até R$ 7.350,00 terão redução significativa no imposto devido.",
+      category: "fiscal",
+      source: "Receita Federal",
+      sourceUrl: "https://www.gov.br/receitafederal",
+      isFeatured: true,
+      publishedAt: new Date(Date.now() - 345600000),
+    },
+    {
+      title: "Novas regras de tributação sobre altas rendas: Receita publica guia explicativo",
+      summary: "Documento de Perguntas e Respostas esclarece aplicação da Lei nº 15.270/2025 sobre tributação de altas rendas.",
+      content: "A Receita Federal divulgou um guia completo com perguntas e respostas sobre as novas regras de tributação para contribuintes de alta renda. O documento esclarece dúvidas sobre a aplicação da nova legislação.",
+      category: "fiscal",
+      source: "Fenacon",
+      sourceUrl: "https://fenacon.org.br",
+      isFeatured: false,
+      publishedAt: new Date(Date.now() - 432000000),
+    },
+    {
+      title: "Previdência Social: Novas regras para aposentadoria especial em 2025",
+      summary: "INSS atualiza critérios para concessão de aposentadoria especial, afetando trabalhadores expostos a agentes nocivos.",
+      content: "O INSS publicou novas instruções normativas que alteram os critérios para concessão de aposentadoria especial. As mudanças afetam principalmente trabalhadores que exercem atividades em condições prejudiciais à saúde.",
+      category: "previdenciario",
+      source: "INSS",
+      sourceUrl: "https://www.gov.br/inss",
+      isFeatured: false,
+      publishedAt: new Date(Date.now() - 518400000),
+    },
+  ];
+
+  for (const item of initialNews) {
+    await createNews(item);
+  }
 }

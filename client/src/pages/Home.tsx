@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
+import NewsSection from "@/components/NewsSection";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useState } from "react";
@@ -619,6 +620,9 @@ export default function Home() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* News Section */}
+      <NewsSection />
 
       {/* Testimonials Section */}
       <section className="py-24 bg-background">

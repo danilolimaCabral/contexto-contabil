@@ -219,3 +219,27 @@ export const serviceRequests = mysqlTable("service_requests", {
 
 export type ServiceRequest = typeof serviceRequests.$inferSelect;
 export type InsertServiceRequest = typeof serviceRequests.$inferInsert;
+
+/**
+ * Notícias fiscais e contábeis
+ */
+export const news = mysqlTable("news", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 500 }).notNull(),
+  summary: text("summary"),
+  content: text("content"),
+  category: mysqlEnum("category", ["fiscal", "contabil", "tributario", "trabalhista", "previdenciario", "economia", "reforma_tributaria"]).notNull(),
+  source: varchar("source", { length: 255 }).notNull(),
+  sourceUrl: varchar("sourceUrl", { length: 1000 }),
+  imageUrl: varchar("imageUrl", { length: 1000 }),
+  author: varchar("author", { length: 255 }),
+  publishedAt: timestamp("publishedAt").notNull(),
+  isFeatured: boolean("isFeatured").default(false),
+  isActive: boolean("isActive").default(true),
+  viewCount: int("viewCount").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type News = typeof news.$inferSelect;
+export type InsertNews = typeof news.$inferInsert;

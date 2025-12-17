@@ -123,3 +123,14 @@
 - [x] Solicitação de novos serviços pelo portal
 - [x] Notificações automáticas para proprietário sobre novos documentos/solicitações
 - [x] Testes unitários para rotas do portal do cliente
+
+## Seção de Notícias Fiscais e Contábeis
+- [x] Criar schema de banco de dados para armazenar notícias
+- [x] Implementar rotas de API para buscar e servir notícias
+- [x] Criar componente de banner rotativo com notícias principais
+- [x] Criar cards de notícias organizados por categoria (Fiscal, Contábil, Tributário, Trabalhista, Previdenciário, Economia, Reforma Tributária)
+- [x] Criar página dedicada de notícias (/noticias)
+- [x] Integrar seção de notícias na página inicial
+- [x] Seed inicial com 10 notícias sobre reforma tributária e legislação fiscal
+- [x] Link "Notícias" no menu de navegação
+- [x] Testes unitários para rotas de notícias (47 testes passando)

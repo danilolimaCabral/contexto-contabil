@@ -43,6 +43,13 @@
       "when": 1765984302689,
       "tag": "0005_stiff_betty_brant",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1765985078811,
+      "tag": "0006_orange_zodiak",
+      "breakpoints": true
     }
   ]
 }

@@ -12,13 +12,15 @@ import {
   getAllStaffMembers, createStaffMember, updateStaffMember, deactivateStaffMember, reactivateStaffMember,
   getClientByUserId, createClient, updateClient, getClientServices, getAllClientServices, createClientService, updateClientServiceStatus, getServiceUpdates, getAllClients,
   createClientDocument, getClientDocuments, getDocumentById, deleteClientDocument, markDocumentAsProcessed, getAllClientDocuments,
-  createServiceRequest, getClientServiceRequests, getAllServiceRequests, updateServiceRequestStatus, convertServiceRequestToService
+  createServiceRequest, getClientServiceRequests, getAllServiceRequests, updateServiceRequestStatus, convertServiceRequestToService,
+  getActiveNews, getFeaturedNews, getNewsByCategory, getNewsById, incrementNewsViewCount, createNews, updateNews, deleteNews, getAllNews, seedInitialNews
 } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 
-// Seed staff members on startup
+// Seed staff members and news on startup
 seedStaffMembers().catch(console.error);
+seedInitialNews().catch(console.error);
 
 // System prompt for the AI chatbot - Avatar "Contexto"
 const CHATBOT_SYSTEM_PROMPT = `Você é o "Contexto", o assistente virtual inteligente da Contexto Assessoria Contábil. Você é especializado em contabilidade, legislação fiscal e tributária de TODOS os estados brasileiros.
@@ -709,6 +711,111 @@ export const appRouter = router({
       // For now, return empty array - can be expanded to track chat sessions
       return [];
     }),
+  }),
+
+  // News
+  news: router({
+    list: publicProcedure
+      .input(z.object({
+        limit: z.number().min(1).max(50).default(20),
+      }).optional())
+      .query(async ({ input }) => {
+        return getActiveNews(input?.limit || 20);
+      }),
+
+    featured: publicProcedure
+      .input(z.object({
+        limit: z.number().min(1).max(10).default(5),
+      }).optional())
+      .query(async ({ input }) => {
+        return getFeaturedNews(input?.limit || 5);
+      }),
+
+    byCategory: publicProcedure
+      .input(z.object({
+        category: z.enum(["fiscal", "contabil", "tributario", "trabalhista", "previdenciario", "economia", "reforma_tributaria"]),
+        limit: z.number().min(1).max(20).default(10),
+      }))
+      .query(async ({ input }) => {
+        return getNewsByCategory(input.category, input.limit);
+      }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const newsItem = await getNewsById(input.id);
+        if (newsItem) {
+          await incrementNewsViewCount(input.id);
+        }
+        return newsItem;
+      }),
+
+    // Admin routes
+    getAll: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") return [];
+      return getAllNews();
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        summary: z.string().optional(),
+        content: z.string().optional(),
+        category: z.enum(["fiscal", "contabil", "tributario", "trabalhista", "previdenciario", "economia", "reforma_tributaria"]),
+        source: z.string().min(1),
+        sourceUrl: z.string().optional(),
+        imageUrl: z.string().optional(),
+        author: z.string().optional(),
+        isFeatured: z.boolean().default(false),
+        publishedAt: z.date().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") {
+          return { success: false, error: "Unauthorized" };
+        }
+        const news = await createNews({
+          ...input,
+          summary: input.summary ?? null,
+          content: input.content ?? null,
+          sourceUrl: input.sourceUrl ?? null,
+          imageUrl: input.imageUrl ?? null,
+          author: input.author ?? null,
+          publishedAt: input.publishedAt || new Date(),
+        });
+        return { success: true, news };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().optional(),
+        summary: z.string().optional(),
+        content: z.string().optional(),
+        category: z.enum(["fiscal", "contabil", "tributario", "trabalhista", "previdenciario", "economia", "reforma_tributaria"]).optional(),
+        source: z.string().optional(),
+        sourceUrl: z.string().optional(),
+        imageUrl: z.string().optional(),
+        isFeatured: z.boolean().optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") {
+          return { success: false, error: "Unauthorized" };
+        }
+        const { id, ...data } = input;
+        await updateNews(id, data);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") {
+          return { success: false, error: "Unauthorized" };
+        }
+        await deleteNews(input.id);
+        return { success: true };
+      }),
   }),
 });
 
