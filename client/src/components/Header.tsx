@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Phone, LayoutDashboard, User, Shield, Newspaper } from "lucide-react";
+import { Menu, X, Phone, LayoutDashboard, User, Shield, Newspaper, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import {
@@ -16,6 +16,7 @@ const navLinks = [
   { href: "/sobre", label: "Sobre Nós" },
   { href: "/servicos", label: "Serviços" },
   { href: "/contato", label: "Contato" },
+  { href: "/portal", label: "Portal do Cliente" },
 ];
 
 export default function Header() {

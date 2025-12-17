@@ -78,14 +78,19 @@ export default function Footer() {
                 <Mail className="h-4 w-4 text-primary" />
                 contextocontabilidadego@gmail.com
               </a>
-              <div className="flex items-start gap-2 text-muted-foreground text-sm">
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=-16.6799,-49.2556"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-2 text-muted-foreground hover:text-primary transition-colors text-sm"
+              >
                 <MapPin className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
                 <span>
-                  Av. João Luiz de Almeida, 451<br />
-                  Setor Crimeia Oeste<br />
-                  Goiânia - GO, 74.563-230
+                  Av. João Luís de Almeida, 451<br />
+                  Quadra 27 Lote 14 Sala 2<br />
+                  Goiânia - GO, 74563-230
                 </span>
-              </div>
+              </a>
               <a
                 href="https://instagram.com/contexto.contabil"
                 target="_blank"

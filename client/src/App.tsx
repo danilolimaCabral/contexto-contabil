@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Reports from "./pages/Reports";
 import AdminPanel from "./pages/AdminPanel";
 import MemberDashboard from "./pages/MemberDashboard";
+import ClientPortal from "./pages/ClientPortal";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/meu-painel" component={MemberDashboard} />
       <Route path="/relatorios" component={Reports} />
+      <Route path="/portal" component={ClientPortal} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

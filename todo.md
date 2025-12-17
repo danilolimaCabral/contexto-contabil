@@ -109,3 +109,17 @@
 - [x] Aumentar tamanho da logo no header
 - [x] Aumentar tamanho da logo no footer
 - [x] Criar ticker de notícias sobre reforma tributária no topo do site
+- [x] Atualizar endereço completo em todo o site
+- [x] Configurar Google Maps com pin e direções para o escritório
+
+## Portal do Cliente
+- [x] Banner atrativo "O que precisar, estamos à disposição"
+- [x] Chat ao vivo melhorado com todas as funcionalidades
+- [x] Portal do cliente com cadastro
+- [x] Visualização de serviços contratados
+- [x] Acompanhamento de status de cada serviço
+- [x] Histórico de atendimentos do cliente
+- [x] Upload de documentos pelo cliente
+- [x] Solicitação de novos serviços pelo portal
+- [x] Notificações automáticas para proprietário sobre novos documentos/solicitações
+- [x] Testes unitários para rotas do portal do cliente

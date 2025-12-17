@@ -9,7 +9,10 @@ import {
   saveChatMessage, getChatHistory, 
   getActiveTestimonials, createTestimonial,
   getStaffMembers, getStaffByDepartment, seedStaffMembers, getLeadsByStaff,
-  getAllStaffMembers, createStaffMember, updateStaffMember, deactivateStaffMember, reactivateStaffMember
+  getAllStaffMembers, createStaffMember, updateStaffMember, deactivateStaffMember, reactivateStaffMember,
+  getClientByUserId, createClient, updateClient, getClientServices, getAllClientServices, createClientService, updateClientServiceStatus, getServiceUpdates, getAllClients,
+  createClientDocument, getClientDocuments, getDocumentById, deleteClientDocument, markDocumentAsProcessed, getAllClientDocuments,
+  createServiceRequest, getClientServiceRequests, getAllServiceRequests, updateServiceRequestStatus, convertServiceRequestToService
 } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
@@ -424,6 +427,288 @@ export const appRouter = router({
         await createTestimonial({ ...input, company: input.company ?? null, isActive: true });
         return { success: true };
       }),
+  }),
+
+  // Client Portal
+  clients: router({
+    getMyProfile: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user) return null;
+      return getClientByUserId(ctx.user.id);
+    }),
+
+    getMyServices: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user) return [];
+      const client = await getClientByUserId(ctx.user.id);
+      if (!client) return [];
+      return getClientServices(client.id);
+    }),
+
+    updateProfile: protectedProcedure
+      .input(z.object({
+        name: z.string().optional(),
+        phone: z.string().optional(),
+        company: z.string().optional(),
+        cnpj: z.string().optional(),
+        cpf: z.string().optional(),
+        address: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user) return { success: false };
+        let client = await getClientByUserId(ctx.user.id);
+        
+        if (!client) {
+          // Create client profile if doesn't exist
+          const newClient = await createClient({
+            userId: ctx.user.id,
+            name: input.name || ctx.user.name || "Cliente",
+            email: ctx.user.email,
+            phone: input.phone,
+            company: input.company,
+            cnpj: input.cnpj,
+            cpf: input.cpf,
+            address: input.address,
+          });
+        } else {
+          await updateClient(client.id, input);
+        }
+        
+        return { success: true };
+      }),
+
+    // Admin routes for managing clients
+    getAll: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") return [];
+      return getAllClients();
+    }),
+
+    getAllServices: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") return [];
+      return getAllClientServices();
+    }),
+
+    createService: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        serviceType: z.enum(["contabilidade", "tributaria", "pessoal", "fiscal", "abertura", "administrativo"]),
+        serviceName: z.string().min(1),
+        description: z.string().optional(),
+        priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
+        assignedToId: z.number().optional(),
+        dueDate: z.date().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") {
+          return { success: false, error: "Unauthorized" };
+        }
+        
+        const service = await createClientService({
+          ...input,
+          description: input.description ?? null,
+          assignedToId: input.assignedToId ?? null,
+          dueDate: input.dueDate ?? null,
+        });
+        
+        return { success: true, service };
+      }),
+
+    updateServiceStatus: protectedProcedure
+      .input(z.object({
+        serviceId: z.number(),
+        status: z.enum(["pending", "in_progress", "awaiting_docs", "review", "completed", "cancelled"]),
+        message: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") {
+          return { success: false, error: "Unauthorized" };
+        }
+        
+        await updateClientServiceStatus(
+          input.serviceId,
+          input.status,
+          input.message,
+          ctx.user?.id
+        );
+        
+        return { success: true };
+      }),
+
+    getServiceHistory: protectedProcedure
+      .input(z.object({ serviceId: z.number() }))
+      .query(async ({ input }) => {
+        return getServiceUpdates(input.serviceId);
+      }),
+
+    // Document routes
+    getMyDocuments: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user) return [];
+      const client = await getClientByUserId(ctx.user.id);
+      if (!client) return [];
+      return getClientDocuments(client.id);
+    }),
+
+    uploadDocument: protectedProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        description: z.string().optional(),
+        category: z.enum(["fiscal", "contabil", "pessoal", "societario", "outros"]).default("outros"),
+        fileName: z.string(),
+        fileData: z.string(), // Base64 encoded file
+        mimeType: z.string().optional(),
+        serviceId: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user) return { success: false, error: "Unauthorized" };
+        
+        let client = await getClientByUserId(ctx.user.id);
+        if (!client) {
+          // Create client profile if doesn't exist
+          const newClient = await createClient({
+            userId: ctx.user.id,
+            name: ctx.user.name || "Cliente",
+            email: ctx.user.email,
+          });
+          if (!newClient) return { success: false, error: "Failed to create client" };
+          client = newClient;
+        }
+
+        // Import storage helper
+        const { storagePut } = await import("./storage");
+        
+        // Decode base64 and upload to S3
+        const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
+        const buffer = Buffer.from(base64Data, "base64");
+        
+        const randomSuffix = Math.random().toString(36).substring(2, 10);
+        const fileKey = `clients/${client.id}/documents/${Date.now()}-${randomSuffix}-${input.fileName}`;
+        
+        const { url } = await storagePut(fileKey, buffer, input.mimeType || "application/octet-stream");
+        
+        const doc = await createClientDocument({
+          clientId: client.id,
+          serviceId: input.serviceId ?? null,
+          title: input.title,
+          description: input.description ?? null,
+          category: input.category,
+          fileName: input.fileName,
+          fileKey,
+          fileUrl: url,
+          mimeType: input.mimeType ?? null,
+          fileSize: buffer.length,
+          uploadedById: ctx.user.id,
+        });
+
+        // Notify owner about new document
+        await notifyOwner({
+          title: "Novo documento enviado",
+          content: `Cliente ${client.name} enviou um novo documento: ${input.title} (${input.category})`,
+        });
+
+        return { success: true, document: doc };
+      }),
+
+    deleteDocument: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user) return { success: false, error: "Unauthorized" };
+        
+        const client = await getClientByUserId(ctx.user.id);
+        if (!client) return { success: false, error: "Client not found" };
+
+        const doc = await getDocumentById(input.id);
+        if (!doc || doc.clientId !== client.id) {
+          return { success: false, error: "Document not found or unauthorized" };
+        }
+
+        await deleteClientDocument(input.id);
+        return { success: true };
+      }),
+
+    // Service request routes
+    getMyServiceRequests: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user) return [];
+      const client = await getClientByUserId(ctx.user.id);
+      if (!client) return [];
+      return getClientServiceRequests(client.id);
+    }),
+
+    requestService: protectedProcedure
+      .input(z.object({
+        serviceType: z.enum(["contabilidade", "fiscal", "pessoal", "abertura_empresa", "alteracao_contratual", "certidoes", "consultoria", "outros"]),
+        description: z.string().optional(),
+        priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user) return { success: false, error: "Unauthorized" };
+        
+        let client = await getClientByUserId(ctx.user.id);
+        if (!client) {
+          // Create client profile if doesn't exist
+          const newClient = await createClient({
+            userId: ctx.user.id,
+            name: ctx.user.name || "Cliente",
+            email: ctx.user.email,
+          });
+          if (!newClient) return { success: false, error: "Failed to create client" };
+          client = newClient;
+        }
+
+        const request = await createServiceRequest({
+          clientId: client.id,
+          serviceType: input.serviceType,
+          description: input.description ?? null,
+          priority: input.priority,
+        });
+
+        // Notify owner about new service request
+        await notifyOwner({
+          title: "Nova solicitação de serviço",
+          content: `Cliente ${client.name} solicitou: ${input.serviceType} (Prioridade: ${input.priority})\n${input.description || "Sem descrição adicional"}`,
+        });
+
+        return { success: true, request };
+      }),
+
+    // Admin routes for documents and requests
+    getAllDocuments: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") return [];
+      return getAllClientDocuments();
+    }),
+
+    processDocument: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") {
+          return { success: false, error: "Unauthorized" };
+        }
+        await markDocumentAsProcessed(input.id, ctx.user.id);
+        return { success: true };
+      }),
+
+    getAllServiceRequests: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") return [];
+      return getAllServiceRequests();
+    }),
+
+    updateServiceRequest: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["pending", "in_review", "approved", "converted", "rejected"]),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin" && ctx.user?.role !== "staff") {
+          return { success: false, error: "Unauthorized" };
+        }
+        await updateServiceRequestStatus(input.id, input.status, ctx.user.id, input.notes);
+        return { success: true };
+      }),
+
+    // Get client conversations (chat history)
+    getMyConversations: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user) return [];
+      // For now, return empty array - can be expanded to track chat sessions
+      return [];
+    }),
   }),
 });
 

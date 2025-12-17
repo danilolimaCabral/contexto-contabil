@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, leads, InsertLead, Lead, appointments, InsertAppointment, Appointment, chatMessages, InsertChatMessage, ChatMessage, testimonials, Testimonial, staffMembers, StaffMember, InsertStaffMember } from "../drizzle/schema";
+import { InsertUser, users, leads, InsertLead, Lead, appointments, InsertAppointment, Appointment, chatMessages, InsertChatMessage, ChatMessage, testimonials, Testimonial, staffMembers, StaffMember, InsertStaffMember, clients, Client, InsertClient, clientServices, ClientService, InsertClientService, serviceUpdates, ServiceUpdate, InsertServiceUpdate, clientDocuments, ClientDocument, InsertClientDocument, serviceRequests, ServiceRequest, InsertServiceRequest } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -337,4 +337,225 @@ export async function seedStaffMembers(): Promise<void> {
   }
 
   console.log("[Database] Staff members seeded successfully");
+}
+
+// ==================== CLIENT PORTAL FUNCTIONS ====================
+
+export async function getClientByUserId(userId: number): Promise<Client | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(clients).where(eq(clients.userId, userId)).limit(1);
+  return result[0];
+}
+
+export async function createClient(client: InsertClient): Promise<Client | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const result = await db.insert(clients).values(client);
+    const insertId = result[0].insertId;
+    const newClient = await db.select().from(clients).where(eq(clients.id, insertId)).limit(1);
+    return newClient[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to create client:", error);
+    throw error;
+  }
+}
+
+export async function updateClient(id: number, data: Partial<InsertClient>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(clients).set(data).where(eq(clients.id, id));
+}
+
+export async function getClientServices(clientId: number): Promise<ClientService[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(clientServices).where(eq(clientServices.clientId, clientId)).orderBy(desc(clientServices.createdAt));
+}
+
+export async function getAllClientServices(): Promise<ClientService[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(clientServices).orderBy(desc(clientServices.createdAt));
+}
+
+export async function createClientService(service: InsertClientService): Promise<ClientService | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const result = await db.insert(clientServices).values(service);
+    const insertId = result[0].insertId;
+    const newService = await db.select().from(clientServices).where(eq(clientServices.id, insertId)).limit(1);
+    return newService[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to create client service:", error);
+    throw error;
+  }
+}
+
+export async function updateClientServiceStatus(id: number, status: ClientService["status"], message?: string, updatedById?: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(clientServices).set({ status }).where(eq(clientServices.id, id));
+
+  // Add update to history
+  if (message) {
+    await db.insert(serviceUpdates).values({
+      serviceId: id,
+      status,
+      message,
+      updatedById,
+    });
+  }
+}
+
+export async function getServiceUpdates(serviceId: number): Promise<ServiceUpdate[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(serviceUpdates).where(eq(serviceUpdates.serviceId, serviceId)).orderBy(desc(serviceUpdates.createdAt));
+}
+
+export async function getAllClients(): Promise<Client[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(clients).orderBy(desc(clients.createdAt));
+}
+
+// ==================== CLIENT DOCUMENT FUNCTIONS ====================
+
+export async function createClientDocument(doc: InsertClientDocument): Promise<ClientDocument | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const result = await db.insert(clientDocuments).values(doc);
+    const insertId = result[0].insertId;
+    const newDoc = await db.select().from(clientDocuments).where(eq(clientDocuments.id, insertId)).limit(1);
+    return newDoc[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to create document:", error);
+    throw error;
+  }
+}
+
+export async function getClientDocuments(clientId: number): Promise<ClientDocument[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(clientDocuments).where(eq(clientDocuments.clientId, clientId)).orderBy(desc(clientDocuments.createdAt));
+}
+
+export async function getDocumentById(id: number): Promise<ClientDocument | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(clientDocuments).where(eq(clientDocuments.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function deleteClientDocument(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.delete(clientDocuments).where(eq(clientDocuments.id, id));
+}
+
+export async function markDocumentAsProcessed(id: number, processedById: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(clientDocuments).set({
+    isProcessed: true,
+    processedById,
+    processedAt: new Date(),
+  }).where(eq(clientDocuments.id, id));
+}
+
+export async function getAllClientDocuments(): Promise<ClientDocument[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(clientDocuments).orderBy(desc(clientDocuments.createdAt));
+}
+
+// ==================== SERVICE REQUEST FUNCTIONS ====================
+
+export async function createServiceRequest(request: InsertServiceRequest): Promise<ServiceRequest | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const result = await db.insert(serviceRequests).values(request);
+    const insertId = result[0].insertId;
+    const newRequest = await db.select().from(serviceRequests).where(eq(serviceRequests.id, insertId)).limit(1);
+    return newRequest[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to create service request:", error);
+    throw error;
+  }
+}
+
+export async function getClientServiceRequests(clientId: number): Promise<ServiceRequest[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(serviceRequests).where(eq(serviceRequests.clientId, clientId)).orderBy(desc(serviceRequests.createdAt));
+}
+
+export async function getAllServiceRequests(): Promise<ServiceRequest[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(serviceRequests).orderBy(desc(serviceRequests.createdAt));
+}
+
+export async function updateServiceRequestStatus(
+  id: number, 
+  status: ServiceRequest["status"], 
+  reviewedById?: number,
+  notes?: string
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const updateData: Partial<ServiceRequest> = { status };
+  if (reviewedById) {
+    updateData.reviewedById = reviewedById;
+    updateData.reviewedAt = new Date();
+  }
+  if (notes) {
+    updateData.notes = notes;
+  }
+
+  await db.update(serviceRequests).set(updateData).where(eq(serviceRequests.id, id));
+}
+
+export async function convertServiceRequestToService(
+  requestId: number,
+  serviceData: InsertClientService
+): Promise<ClientService | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Create the service
+  const service = await createClientService(serviceData);
+  if (!service) return null;
+
+  // Update the request
+  await db.update(serviceRequests).set({
+    status: "converted",
+    convertedToServiceId: service.id,
+  }).where(eq(serviceRequests.id, requestId));
+
+  return service;
 }

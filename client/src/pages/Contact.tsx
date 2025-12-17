@@ -33,8 +33,8 @@ const contactInfo = [
   {
     icon: MapPin,
     title: "Endereço",
-    value: "Av. João Luiz de Almeida, 451\nQuadra 27 Lote 14 Sala 02\nSetor Crimeia Oeste\nGoiânia - GO, 74.563-230",
-    href: "https://maps.google.com/?q=Av.+João+Luiz+de+Almeida,+451,+Setor+Crimeia+Oeste,+Goiânia+-+GO",
+    value: "Av. João Luís de Almeida, 451\nQuadra 27 Lote 14 Sala 2\nSetor Crimeia Oeste\nGoiânia - GO, 74563-230",
+    href: "https://www.google.com/maps/dir/?api=1&destination=-16.6799,-49.2556&destination_place_id=Contexto+Assessoria+Cont%C3%A1bil",
   },
   {
     icon: Instagram,
@@ -90,7 +90,7 @@ export default function Contact() {
     }));
   };
 
-  // Coordenadas do escritório em Goiânia
+  // Coordenadas exatas do escritório em Goiânia - Av. João Luís de Almeida, 451
   const officeLocation = { lat: -16.6799, lng: -49.2556 };
 
   return (
@@ -323,7 +323,7 @@ export default function Contact() {
 
           <div className="mt-6 text-center">
             <a
-              href="https://maps.google.com/?q=Av.+João+Luiz+de+Almeida,+451,+Setor+Crimeia+Oeste,+Goiânia+-+GO"
+              href="https://www.google.com/maps/dir/?api=1&destination=-16.6799,-49.2556&destination_place_id=Contexto+Assessoria+Cont%C3%A1bil"
               target="_blank"
               rel="noopener noreferrer"
             >
