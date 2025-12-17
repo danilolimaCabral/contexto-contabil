@@ -228,4 +228,18 @@
     box-shadow: 0 10px 40px rgba(201, 169, 98, 0.15);
     border-color: var(--gold);
   }
+
+  /* News ticker animation */
+  .animate-marquee {
+    animation: marquee 40s linear infinite;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }

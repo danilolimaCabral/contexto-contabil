@@ -13,7 +13,7 @@ export default function Footer() {
             <img
               src="/logo-header.png"
               alt="Contexto Assessoria Contábil"
-              className="h-16 w-auto"
+              className="h-24 w-auto"
             />
             <p className="text-muted-foreground text-sm leading-relaxed">
               Simplificando a gestão contábil e fiscal da sua empresa, oferecendo

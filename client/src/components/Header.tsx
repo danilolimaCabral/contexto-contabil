@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Phone, LayoutDashboard, User, Shield } from "lucide-react";
+import { Menu, X, Phone, LayoutDashboard, User, Shield, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import {
@@ -25,8 +25,41 @@ export default function Header() {
 
   const isAdmin = user?.role === "admin";
 
+  const newsItems = [
+    "REFORMA TRIBUTÁRIA 2024: Novo IVA unifica PIS, Cofins, ICMS, ISS e IPI em imposto único",
+    "CBS e IBS: Novos impostos começam a ser implementados gradualmente a partir de 2026",
+    "SIMPLES NACIONAL: Alterações previstas para MEI e pequenas empresas nos próximos anos",
+    "IMPOSTO DE RENDA 2025: Novas faixas de isenção e deduções em análise no Congresso",
+    "SPED FISCAL: Obrigações acessórias serão simplificadas com a reforma tributária",
+  ];
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <>
+      {/* News Ticker */}
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-primary/90 text-primary-foreground py-1.5 overflow-hidden">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-4 bg-primary font-semibold text-sm whitespace-nowrap">
+            <Newspaper className="h-4 w-4" />
+            NOTÍCIAS
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <div className="animate-marquee whitespace-nowrap flex gap-16">
+              {newsItems.map((news, index) => (
+                <span key={index} className="text-sm">
+                  • {news}
+                </span>
+              ))}
+              {newsItems.map((news, index) => (
+                <span key={`dup-${index}`} className="text-sm">
+                  • {news}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <header className="fixed top-8 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
@@ -34,7 +67,7 @@ export default function Header() {
             <img
               src="/logo-header.png"
               alt="Contexto Assessoria Contábil"
-              className="h-14 w-auto"
+              className="h-20 w-auto"
             />
           </Link>
 
@@ -209,5 +242,6 @@ export default function Header() {
         )}
       </div>
     </header>
+    </>
   );
 }

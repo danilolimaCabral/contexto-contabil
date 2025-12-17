@@ -104,3 +104,8 @@
 - [x] Tempo médio de resposta
 - [x] Desempenho por departamento
 - [x] Metas do mês com progresso
+
+## Ajustes Visuais
+- [x] Aumentar tamanho da logo no header
+- [x] Aumentar tamanho da logo no footer
+- [x] Criar ticker de notícias sobre reforma tributária no topo do site
