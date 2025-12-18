@@ -12,6 +12,7 @@ vi.mock("./db", () => ({
   deleteNews: vi.fn(),
   getAllNews: vi.fn(),
   seedInitialNews: vi.fn(),
+  searchNews: vi.fn(),
 }));
 
 import {
@@ -24,6 +25,7 @@ import {
   updateNews,
   deleteNews,
   getAllNews,
+  searchNews,
 } from "./db";
 
 describe("News API", () => {
@@ -207,6 +209,40 @@ describe("News API", () => {
 
       const result = await getAllNews();
       expect(result).toHaveLength(2);
+    });
+  });
+
+  describe("searchNews", () => {
+    it("should search news by query in title, summary and content", async () => {
+      const mockSearchResults = [
+        {
+          id: 1,
+          title: "Reforma Tributária 2024",
+          summary: "Mudanças na reforma tributária",
+          category: "reforma_tributaria",
+          isActive: true,
+        },
+        {
+          id: 2,
+          title: "Impactos da Reforma",
+          summary: "Como a reforma afeta empresas",
+          category: "tributario",
+          isActive: true,
+        },
+      ];
+
+      vi.mocked(searchNews).mockResolvedValue(mockSearchResults as any);
+
+      const result = await searchNews("reforma", 20);
+      expect(result).toHaveLength(2);
+      expect(searchNews).toHaveBeenCalledWith("reforma", 20);
+    });
+
+    it("should return empty array when no results found", async () => {
+      vi.mocked(searchNews).mockResolvedValue([]);
+
+      const result = await searchNews("inexistente", 20);
+      expect(result).toHaveLength(0);
     });
   });
 

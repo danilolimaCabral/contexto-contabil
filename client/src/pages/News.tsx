@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useParams } from "wouter";
+import { useState, useEffect } from "react";
+import { Link, useParams, useSearch } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
@@ -22,7 +22,10 @@ import {
   ExternalLink,
   ArrowLeft,
   Share2,
+  Search,
+  X,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 const categoryConfig = {
@@ -64,14 +67,48 @@ function NewsCardSkeleton() {
   );
 }
 
+// Highlight search terms in text
+function highlightText(text: string, query: string) {
+  if (!query.trim()) return text;
+  
+  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  return parts.map((part, i) => 
+    part.toLowerCase() === query.toLowerCase() 
+      ? <mark key={i} className="bg-amber-500/30 text-amber-200 px-0.5 rounded">{part}</mark>
+      : part
+  );
+}
+
 // News List Page
 function NewsListPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const { data: allNews, isLoading } = trpc.news.list.useQuery({ limit: 50 });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const { data: allNews, isLoading: listLoading } = trpc.news.list.useQuery(
+    { limit: 50 },
+    { enabled: !debouncedQuery }
+  );
+  
+  const { data: searchResults, isLoading: searchLoading } = trpc.news.search.useQuery(
+    { query: debouncedQuery, limit: 50 },
+    { enabled: !!debouncedQuery }
+  );
+
+  const isLoading = debouncedQuery ? searchLoading : listLoading;
+  const newsToDisplay = debouncedQuery ? searchResults : allNews;
 
   const filteredNews = selectedCategory
-    ? allNews?.filter((n) => n.category === selectedCategory)
-    : allNews;
+    ? newsToDisplay?.filter((n) => n.category === selectedCategory)
+    : newsToDisplay;
 
   return (
     <>
@@ -92,6 +129,39 @@ function NewsListPage() {
             <p className="text-zinc-400 text-lg max-w-2xl">
               Acompanhe as últimas atualizações sobre legislação fiscal, tributária, trabalhista e contábil do Brasil
             </p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="mb-6">
+            <div className="relative max-w-xl">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+              <Input
+                type="text"
+                placeholder="Buscar notícias por palavras-chave..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 pr-12 py-6 bg-zinc-900/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-amber-500 text-lg"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+            {debouncedQuery && (
+              <p className="text-zinc-400 text-sm mt-2">
+                {searchLoading ? (
+                  "Buscando..."
+                ) : (
+                  <>
+                    {filteredNews?.length || 0} resultado{(filteredNews?.length || 0) !== 1 ? "s" : ""} para "{debouncedQuery}"
+                  </>
+                )}
+              </p>
+            )}
           </div>
 
           {/* Category Filter */}
@@ -146,13 +216,13 @@ function NewsListPage() {
                           )}
                         </div>
                         <h4 className="font-semibold text-white group-hover:text-amber-400 transition-colors line-clamp-2 text-lg">
-                          {news.title}
+                          {debouncedQuery ? highlightText(news.title, debouncedQuery) : news.title}
                         </h4>
                       </CardHeader>
                       <CardContent>
                         {news.summary && (
                           <p className="text-zinc-400 text-sm line-clamp-3 mb-4">
-                            {news.summary}
+                            {debouncedQuery ? highlightText(news.summary, debouncedQuery) : news.summary}
                           </p>
                         )}
                         <div className="flex items-center justify-between text-xs text-zinc-500">
@@ -176,8 +246,24 @@ function NewsListPage() {
             ) : (
               <div className="col-span-full text-center py-20">
                 <Newspaper className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">Nenhuma notícia encontrada</h3>
-                <p className="text-zinc-500">Não há notícias disponíveis nesta categoria no momento.</p>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  {debouncedQuery ? "Nenhum resultado encontrado" : "Nenhuma notícia encontrada"}
+                </h3>
+                <p className="text-zinc-500">
+                  {debouncedQuery 
+                    ? `Não encontramos notícias para "${debouncedQuery}". Tente outros termos.`
+                    : "Não há notícias disponíveis nesta categoria no momento."
+                  }
+                </p>
+                {debouncedQuery && (
+                  <Button
+                    variant="outline"
+                    className="mt-4 border-amber-500/30 text-amber-500 hover:bg-amber-500/10"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    Limpar busca
+                  </Button>
+                )}
               </div>
             )}
           </div>

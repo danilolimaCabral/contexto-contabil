@@ -134,3 +134,13 @@
 - [x] Seed inicial com 10 notícias sobre reforma tributária e legislação fiscal
 - [x] Link "Notícias" no menu de navegação
 - [x] Testes unitários para rotas de notícias (47 testes passando)
+
+## Busca de Notícias
+- [x] Função de busca no banco de dados
+- [x] Rota de API para pesquisa de notícias
+- [x] Campo de busca na página de notícias
+- [x] Destaque dos termos encontrados nos resultados
+- [x] Testes unitários para busca (49 testes passando)
+
+## Fotos da Equipe
+- [x] Atualizar fotos reais dos funcionários (Samarah, Laura, Emilly, Júnior, Janderley)

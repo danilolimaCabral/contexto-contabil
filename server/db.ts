@@ -1,4 +1,4 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, leads, InsertLead, Lead, appointments, InsertAppointment, Appointment, chatMessages, InsertChatMessage, ChatMessage, testimonials, Testimonial, staffMembers, StaffMember, InsertStaffMember, clients, Client, InsertClient, clientServices, ClientService, InsertClientService, serviceUpdates, ServiceUpdate, InsertServiceUpdate, clientDocuments, ClientDocument, InsertClientDocument, serviceRequests, ServiceRequest, InsertServiceRequest, news, News, InsertNews } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -759,4 +759,25 @@ export async function seedInitialNews(): Promise<void> {
   for (const item of initialNews) {
     await createNews(item);
   }
+}
+
+export async function searchNews(query: string, limit: number = 20): Promise<News[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const searchTerm = `%${query}%`;
+  
+  return db.select().from(news)
+    .where(
+      and(
+        eq(news.isActive, true),
+        or(
+          like(news.title, searchTerm),
+          like(news.summary, searchTerm),
+          like(news.content, searchTerm)
+        )
+      )
+    )
+    .orderBy(desc(news.publishedAt))
+    .limit(limit);
 }

@@ -13,7 +13,7 @@ import {
   getClientByUserId, createClient, updateClient, getClientServices, getAllClientServices, createClientService, updateClientServiceStatus, getServiceUpdates, getAllClients,
   createClientDocument, getClientDocuments, getDocumentById, deleteClientDocument, markDocumentAsProcessed, getAllClientDocuments,
   createServiceRequest, getClientServiceRequests, getAllServiceRequests, updateServiceRequestStatus, convertServiceRequestToService,
-  getActiveNews, getFeaturedNews, getNewsByCategory, getNewsById, incrementNewsViewCount, createNews, updateNews, deleteNews, getAllNews, seedInitialNews
+  getActiveNews, getFeaturedNews, getNewsByCategory, getNewsById, incrementNewsViewCount, createNews, updateNews, deleteNews, getAllNews, seedInitialNews, searchNews
 } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
@@ -748,6 +748,15 @@ export const appRouter = router({
           await incrementNewsViewCount(input.id);
         }
         return newsItem;
+      }),
+
+    search: publicProcedure
+      .input(z.object({
+        query: z.string().min(1).max(100),
+        limit: z.number().min(1).max(50).default(20),
+      }))
+      .query(async ({ input }) => {
+        return searchNews(input.query, input.limit);
       }),
 
     // Admin routes

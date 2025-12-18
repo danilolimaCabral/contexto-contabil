@@ -33,48 +33,56 @@ const team = [
     department: "Departamento Fiscal",
     description: "Especialista em apuração de impostos e obrigações fiscais.",
     color: "from-amber-500 to-amber-700",
+    image: "/avatars/gabriel.png",
   },
   {
     name: "Samarah",
     department: "Departamento Fiscal",
     description: "Responsável por declarações e planejamento tributário.",
     color: "from-amber-500 to-amber-700",
+    image: "/team/samarah.jpg",
   },
   {
     name: "Laura",
     department: "Departamento Contábil",
     description: "Coordena a escrituração contábil e elaboração de balanços.",
     color: "from-emerald-500 to-emerald-700",
+    image: "/team/laura.jpg",
   },
   {
     name: "Janderley",
     department: "Departamento Pessoal",
     description: "Especialista em folha de pagamento e rotinas trabalhistas.",
     color: "from-blue-500 to-blue-700",
+    image: "/team/janderley.jpg",
   },
   {
     name: "Emily",
     department: "Departamento Pessoal",
     description: "Responsável por admissões, rescisões e benefícios.",
     color: "from-blue-500 to-blue-700",
+    image: "/team/emilly.jpg",
   },
   {
     name: "Júnior",
     department: "Departamento Pessoal",
     description: "Atua com E-Social e obrigações trabalhistas acessórias.",
     color: "from-blue-500 to-blue-700",
+    image: "/team/junior.jpg",
   },
   {
     name: "José",
     department: "Departamento Paralegal",
     description: "Especialista em abertura e regularização de empresas.",
     color: "from-purple-500 to-purple-700",
+    image: "/avatars/jose.png",
   },
   {
     name: "Bruna",
     department: "Departamento Paralegal",
     description: "Responsável por documentação e processos legais.",
     color: "from-purple-500 to-purple-700",
+    image: "/avatars/bruna.png",
   },
 ];
 
@@ -239,10 +247,18 @@ export default function About() {
                 key={index}
                 className="group text-center p-6 bg-background border border-border rounded-2xl card-hover"
               >
-                <div className={`w-24 h-24 mx-auto rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center mb-4 shadow-lg`}>
-                  <span className="text-3xl font-bold text-white">
-                    {member.name.charAt(0)}
-                  </span>
+                <div className={`w-24 h-24 mx-auto rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center mb-4 shadow-lg overflow-hidden`}>
+                  {member.image ? (
+                    <img 
+                      src={member.image} 
+                      alt={member.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-3xl font-bold text-white">
+                      {member.name.charAt(0)}
+                    </span>
+                  )}
                 </div>
                 <h3 className="font-semibold text-lg">{member.name}</h3>
                 <p className="text-sm text-primary mb-2">{member.department}</p>
