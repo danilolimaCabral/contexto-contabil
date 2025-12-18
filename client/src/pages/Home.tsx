@@ -314,10 +314,12 @@ export default function Home() {
                 <span className="text-gold-gradient">gestão contábil</span>{" "}
                 para você crescer
               </h1>
+              <h2 className="sr-only">Contador em Goiânia - Escritório de Contabilidade - Assessoria Fiscal e Tributária</h2>
               
               <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
-                A Contexto Assessoria Contábil oferece soluções personalizadas em contabilidade, 
-                consultoria tributária e departamento pessoal para empresas de todos os portes.
+                A Contexto Assessoria Contábil é um <strong>escritório de contabilidade em Goiânia</strong> que oferece 
+                soluções personalizadas em <strong>contabilidade empresarial</strong>, <strong>consultoria tributária</strong>, 
+                <strong>departamento pessoal</strong> e <strong>abertura de empresas</strong> para negócios de todos os portes.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">

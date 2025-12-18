@@ -152,3 +152,26 @@
 - [x] Gerar avatar profissional para Júnior (Pessoal) com Nano Banana
 - [x] Gerar avatar profissional para Janderley (Pessoal) com Nano Banana
 - [x] Atualizar imagens no site
+
+## Vídeo Explicativo do Site
+- [x] Preparar roteiro do vídeo (7 minutos)
+- [x] Gerar vídeo com Invideo MCP
+- [x] Entregar vídeo ao usuário
+
+## Vídeo Teaser para Redes Sociais
+- [x] Preparar roteiro curto (60 segundos)
+- [x] Gerar vídeo teaser com Invideo MCP
+- [x] Entregar vídeo ao usuário
+
+## Teaser Contabilidade e Fiscal (30s)
+- [x] Gerar vídeo teaser focado em contabilidade e fiscal
+- [x] Entregar vídeo ao usuário
+
+## Correções de SEO
+- [x] Título otimizado (52 caracteres): "Contexto Assessoria Contábil | Escritório em Goiânia"
+- [x] Meta description (158 caracteres) com serviços principais
+- [x] Palavras-chave relevantes (contabilidade goiânia, contador, assessoria fiscal, etc.)
+- [x] Open Graph e Twitter Cards para compartilhamento
+- [x] Tags geo.region e geo.placename para SEO local
+- [x] Canonical URL configurada
+- [x] Palavras-chave no conteúdo do hero section com tags <strong>
