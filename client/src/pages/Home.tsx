@@ -162,7 +162,7 @@ const team = [
     name: "Samarah", 
     department: "Departamento Fiscal", 
     departmentKey: "fiscal",
-    avatar: "/team/samarah.jpg",
+    avatar: "/team/samarah-avatar.png",
     description: "Especialista em ICMS e obrigações acessórias"
   },
   { 
@@ -170,7 +170,7 @@ const team = [
     name: "Laura", 
     department: "Departamento Contábil", 
     departmentKey: "contabil",
-    avatar: "/team/laura.jpg",
+    avatar: "/team/laura-avatar.png",
     description: "Especialista em contabilidade e balanços"
   },
   { 
@@ -178,7 +178,7 @@ const team = [
     name: "Janderley", 
     department: "Departamento Pessoal", 
     departmentKey: "pessoal",
-    avatar: "/team/janderley.jpg",
+    avatar: "/team/janderley-avatar.png",
     description: "Especialista em folha de pagamento"
   },
   { 
@@ -186,7 +186,7 @@ const team = [
     name: "Emily", 
     department: "Departamento Pessoal", 
     departmentKey: "pessoal",
-    avatar: "/team/emilly.jpg",
+    avatar: "/team/emilly-avatar.png",
     description: "Especialista em admissões e rescisões"
   },
   { 
@@ -194,7 +194,7 @@ const team = [
     name: "Júnior", 
     department: "Departamento Pessoal", 
     departmentKey: "pessoal",
-    avatar: "/team/junior.jpg",
+    avatar: "/team/junior-avatar.png",
     description: "Especialista em eSocial e obrigações trabalhistas"
   },
   { 

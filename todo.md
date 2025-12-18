@@ -144,3 +144,11 @@
 
 ## Fotos da Equipe
 - [x] Atualizar fotos reais dos funcionários (Samarah, Laura, Emilly, Júnior, Janderley)
+
+## Avatares Profissionais da Equipe
+- [x] Gerar avatar profissional para Samarah (Fiscal) com Nano Banana
+- [x] Gerar avatar profissional para Laura (Contábil) com Nano Banana
+- [x] Gerar avatar profissional para Emilly (Pessoal) com Nano Banana
+- [x] Gerar avatar profissional para Júnior (Pessoal) com Nano Banana
+- [x] Gerar avatar profissional para Janderley (Pessoal) com Nano Banana
+- [x] Atualizar imagens no site
