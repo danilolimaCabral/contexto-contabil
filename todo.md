@@ -175,3 +175,16 @@
 - [x] Tags geo.region e geo.placename para SEO local
 - [x] Canonical URL configurada
 - [x] Palavras-chave no conteúdo do hero section com tags <strong>
+
+## Repositório GitHub
+- [x] Criar repositório no GitHub
+- [x] Fazer push de todo o código (398 objetos, 105 MB)
+- [x] Entregar link do repositório
+
+## Deploy Railway
+- [x] Criar arquivo railway.toml
+- [x] Criar arquivo nixpacks.toml
+- [x] Adicionar endpoint /api/health
+- [x] Ajustar scripts de build/start
+- [x] Criar RAILWAY_DEPLOY.md com instruções
+- [x] Fazer push para GitHub
