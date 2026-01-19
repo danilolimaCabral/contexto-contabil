@@ -858,6 +858,13 @@ export const appRouter = router({
         await deleteNews(input.id);
         return { success: true };
       }),
+
+    // Force seed news (public endpoint for initial setup)
+    forceSeed: publicProcedure.mutation(async () => {
+      await seedInitialNews();
+      const allNews = await getActiveNews(100);
+      return { success: true, count: allNews.length };
+    }),
   }),
 });
 
