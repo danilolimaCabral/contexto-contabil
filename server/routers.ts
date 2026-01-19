@@ -861,8 +861,77 @@ export const appRouter = router({
 
     // Force seed news (public endpoint for initial setup)
     forceSeed: publicProcedure.mutation(async () => {
-      await seedInitialNews();
+      // Check current news count
+      const existingNews = await getActiveNews(100);
+      console.log(`[forceSeed] Existing news count: ${existingNews.length}`);
+      
+      if (existingNews.length === 0) {
+        // Force insert news directly
+        const newsToInsert = [
+          {
+            title: "Reforma Tributária 2024: Novo IVA unifica PIS, Cofins, ICMS, ISS e IPI em imposto único",
+            summary: "A Câmara dos Deputados aprovou o projeto de lei complementar que regulamenta a reforma tributária, unificando cinco tributos em um único imposto sobre valor agregado (IVA dual).",
+            content: "A reforma tributária representa a maior mudança no sistema de impostos brasileiro em décadas. O novo modelo substitui cinco tributos (PIS, Cofins, IPI, ICMS e ISS) por dois novos impostos: a CBS (Contribuição sobre Bens e Serviços), de competência federal, e o IBS (Imposto sobre Bens e Serviços), de competência estadual e municipal.",
+            category: "reforma_tributaria" as const,
+            source: "Portal Contábeis",
+            sourceUrl: "https://www.contabeis.com.br",
+            isFeatured: true,
+            publishedAt: new Date(),
+          },
+          {
+            title: "CBS e IBS: Novos impostos começam a ser implementados gradualmente a partir de 2026",
+            summary: "O período de transição para os novos tributos CBS e IBS terá início em janeiro de 2026, com alíquotas reduzidas durante a fase de testes.",
+            content: "A implementação dos novos impostos será gradual, começando com alíquotas de teste em 2026. A CBS terá alíquota de 0,9% e o IBS de 0,1% durante o período experimental.",
+            category: "tributario" as const,
+            source: "Receita Federal",
+            sourceUrl: "https://www.gov.br/receitafederal",
+            isFeatured: true,
+            publishedAt: new Date(Date.now() - 3600000),
+          },
+          {
+            title: "Imposto sobre dividendos também atinge empresas do Simples Nacional",
+            summary: "Receita Federal esclarece que lucros e dividendos de empresas do Simples Nacional estarão sujeitos ao Imposto de Renda Mínimo a partir de 2026.",
+            content: "Em esclarecimento recente, a Receita Federal confirmou que as empresas optantes pelo Simples Nacional também serão afetadas pela tributação sobre dividendos prevista na reforma tributária.",
+            category: "fiscal" as const,
+            source: "Portal Contábeis",
+            sourceUrl: "https://www.contabeis.com.br",
+            isFeatured: true,
+            publishedAt: new Date(Date.now() - 7200000),
+          },
+          {
+            title: "eSocial: Novas regras para declaração de eventos trabalhistas entram em vigor",
+            summary: "Empresas devem se adequar às novas regras do eSocial que entram em vigor em 2025, com prazos mais rigorosos para envio de informações.",
+            content: "O eSocial passa por mais uma atualização importante. As empresas precisam estar atentas aos novos prazos e formatos de envio de eventos trabalhistas.",
+            category: "trabalhista" as const,
+            source: "Fenacon",
+            sourceUrl: "https://fenacon.org.br",
+            isFeatured: false,
+            publishedAt: new Date(Date.now() - 10800000),
+          },
+          {
+            title: "Carga tributária brasileira atinge 32,2% do PIB em 2024",
+            summary: "Brasil registra a maior carga tributária bruta dos últimos 22 anos, com alta de 1,98 ponto porcentual em relação ao ano anterior.",
+            content: "Os dados divulgados mostram que a carga tributária brasileira atingiu seu maior patamar em mais de duas décadas.",
+            category: "economia" as const,
+            source: "Portal Contábil SC",
+            sourceUrl: "https://portalcontabilsc.com.br",
+            isFeatured: false,
+            publishedAt: new Date(Date.now() - 172800000),
+          },
+        ];
+        
+        for (const item of newsToInsert) {
+          try {
+            await createNews(item);
+            console.log(`[forceSeed] Created news: ${item.title}`);
+          } catch (error) {
+            console.error(`[forceSeed] Failed to create news: ${item.title}`, error);
+          }
+        }
+      }
+      
       const allNews = await getActiveNews(100);
+      console.log(`[forceSeed] Final news count: ${allNews.length}`);
       return { success: true, count: allNews.length };
     }),
   }),
