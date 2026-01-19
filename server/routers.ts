@@ -876,6 +876,7 @@ export const appRouter = router({
             source: "Portal Contábeis",
             sourceUrl: "https://www.contabeis.com.br",
             isFeatured: true,
+            isActive: true,
             publishedAt: new Date(),
           },
           {
@@ -886,6 +887,7 @@ export const appRouter = router({
             source: "Receita Federal",
             sourceUrl: "https://www.gov.br/receitafederal",
             isFeatured: true,
+            isActive: true,
             publishedAt: new Date(Date.now() - 3600000),
           },
           {
@@ -896,6 +898,7 @@ export const appRouter = router({
             source: "Portal Contábeis",
             sourceUrl: "https://www.contabeis.com.br",
             isFeatured: true,
+            isActive: true,
             publishedAt: new Date(Date.now() - 7200000),
           },
           {
@@ -906,6 +909,7 @@ export const appRouter = router({
             source: "Fenacon",
             sourceUrl: "https://fenacon.org.br",
             isFeatured: false,
+            isActive: true,
             publishedAt: new Date(Date.now() - 10800000),
           },
           {
@@ -916,6 +920,7 @@ export const appRouter = router({
             source: "Portal Contábil SC",
             sourceUrl: "https://portalcontabilsc.com.br",
             isFeatured: false,
+            isActive: true,
             publishedAt: new Date(Date.now() - 172800000),
           },
         ];
