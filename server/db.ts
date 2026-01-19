@@ -673,6 +673,7 @@ export async function seedInitialNews(): Promise<void> {
       source: "Portal Contábeis",
       sourceUrl: "https://www.contabeis.com.br",
       isFeatured: true,
+      isActive: true,
       publishedAt: new Date(),
     },
     {
@@ -683,6 +684,7 @@ export async function seedInitialNews(): Promise<void> {
       source: "Receita Federal",
       sourceUrl: "https://www.gov.br/receitafederal",
       isFeatured: true,
+      isActive: true,
       publishedAt: new Date(Date.now() - 3600000),
     },
     {
@@ -693,6 +695,7 @@ export async function seedInitialNews(): Promise<void> {
       source: "Portal Contábeis",
       sourceUrl: "https://www.contabeis.com.br",
       isFeatured: true,
+      isActive: true,
       publishedAt: new Date(Date.now() - 7200000),
     },
     {
@@ -703,6 +706,7 @@ export async function seedInitialNews(): Promise<void> {
       source: "Fenacon",
       sourceUrl: "https://fenacon.org.br",
       isFeatured: false,
+      isActive: true,
       publishedAt: new Date(Date.now() - 10800000),
     },
     {
@@ -713,6 +717,7 @@ export async function seedInitialNews(): Promise<void> {
       source: "Agência Brasil",
       sourceUrl: "https://agenciabrasil.ebc.com.br",
       isFeatured: false,
+      isActive: true,
       publishedAt: new Date(Date.now() - 86400000),
     },
     {
@@ -723,6 +728,7 @@ export async function seedInitialNews(): Promise<void> {
       source: "Portal Contábil SC",
       sourceUrl: "https://portalcontabilsc.com.br",
       isFeatured: false,
+      isActive: true,
       publishedAt: new Date(Date.now() - 172800000),
     },
     {
@@ -733,6 +739,7 @@ export async function seedInitialNews(): Promise<void> {
       source: "Secretaria da Fazenda RS",
       sourceUrl: "https://fazenda.rs.gov.br",
       isFeatured: false,
+      isActive: true,
       publishedAt: new Date(Date.now() - 259200000),
     },
     {
@@ -743,6 +750,7 @@ export async function seedInitialNews(): Promise<void> {
       source: "Receita Federal",
       sourceUrl: "https://www.gov.br/receitafederal",
       isFeatured: true,
+      isActive: true,
       publishedAt: new Date(Date.now() - 345600000),
     },
     {
@@ -753,6 +761,7 @@ export async function seedInitialNews(): Promise<void> {
       source: "Fenacon",
       sourceUrl: "https://fenacon.org.br",
       isFeatured: false,
+      isActive: true,
       publishedAt: new Date(Date.now() - 432000000),
     },
     {
@@ -763,6 +772,7 @@ export async function seedInitialNews(): Promise<void> {
       source: "INSS",
       sourceUrl: "https://www.gov.br/inss",
       isFeatured: false,
+      isActive: true,
       publishedAt: new Date(Date.now() - 518400000),
     },
   ];
