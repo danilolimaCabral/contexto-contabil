@@ -191,9 +191,16 @@
 
 
 ## Migração para Railway (Remover Manus)
-- [ ] Criar sistema de autenticação próprio com email/senha
-- [ ] Substituir API Forge por Groq API para chatbot
-- [ ] Remover dependências do OAuth Manus
-- [ ] Adicionar banco MySQL no Railway
-- [ ] Configurar variáveis de ambiente
-- [ ] Testar e fazer deploy
+- [x] Criar sistema de autenticação próprio com email/senha
+- [x] Substituir API Forge por Groq API para chatbot
+- [x] Remover dependências do OAuth Manus
+- [x] Adicionar banco MySQL no Railway
+- [x] Configurar variáveis de ambiente
+- [x] Deploy no Railway funcionando
+
+## Correções Railway
+- [ ] Executar migração do banco de dados
+- [ ] Popular banco com notícias iniciais
+- [ ] Testar login/cadastro
+- [ ] Testar chatbot com Groq
+- [ ] Verificar todas as funcionalidades
