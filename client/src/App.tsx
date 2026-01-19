@@ -14,6 +14,7 @@ import AdminPanel from "./pages/AdminPanel";
 import MemberDashboard from "./pages/MemberDashboard";
 import ClientPortal from "./pages/ClientPortal";
 import News from "./pages/News";
+import Login from "./pages/Login";
 
 function Router() {
   return (
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/portal" component={ClientPortal} />
       <Route path="/noticias" component={News} />
       <Route path="/noticias/:id" component={News} />
+      <Route path="/login" component={Login} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -188,3 +188,12 @@
 - [x] Ajustar scripts de build/start
 - [x] Criar RAILWAY_DEPLOY.md com instruções
 - [x] Fazer push para GitHub
+
+
+## Migração para Railway (Remover Manus)
+- [ ] Criar sistema de autenticação próprio com email/senha
+- [ ] Substituir API Forge por Groq API para chatbot
+- [ ] Remover dependências do OAuth Manus
+- [ ] Adicionar banco MySQL no Railway
+- [ ] Configurar variáveis de ambiente
+- [ ] Testar e fazer deploy
