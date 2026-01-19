@@ -574,13 +574,22 @@ export async function convertServiceRequestToService(
 // ==================== NEWS FUNCTIONS ====================
 
 export async function createNews(newsItem: InsertNews): Promise<News | null> {
+  console.log(`[createNews] Starting to create news: ${newsItem.title}`);
+  console.log(`[createNews] DATABASE_URL exists: ${!!process.env.DATABASE_URL}`);
+  
   const db = await getDb();
-  if (!db) return null;
+  if (!db) {
+    console.error("[createNews] Database not available!");
+    return null;
+  }
 
   try {
+    console.log(`[createNews] Inserting news with isActive: ${newsItem.isActive}`);
     const result = await db.insert(news).values(newsItem);
     const insertId = result[0].insertId;
+    console.log(`[createNews] Inserted with ID: ${insertId}`);
     const newNews = await db.select().from(news).where(eq(news.id, insertId)).limit(1);
+    console.log(`[createNews] Retrieved news: ${JSON.stringify(newNews[0])}`);
     return newNews[0] || null;
   } catch (error) {
     console.error("[Database] Failed to create news:", error);
